@@ -102,6 +102,7 @@ type
     function getkmlist(): TStringList;
     procedure fill(kmlist: tstringlist);
     procedure fillall();
+    procedure filltrial;
     procedure import_KMYEB7column;
     procedure import_KMYEB9column;
     procedure import_pzsheet;
@@ -794,7 +795,6 @@ var
   AIMPORT: import_kmyeb9;
 begin
   //
-
   TABLETMP.Connection := fcon;
   AIMPORT := import_kmyeb9.create(fxlsapp, qrytmp, TABLETMP);
   AIMPORT.xm := fxm;
@@ -902,6 +902,110 @@ begin
   qrydg.free;
   qrydg := nil;
 end;
+
+
+procedure dgworkbook.filltrial;
+var
+  i, j: integer;
+  dgname, dgfx: string;
+  SJ1: tdatetime;
+  pos1: integer;
+  aworkbook: Variant;
+  asdsheet: sdsheet;
+  AMXBSHEET: MXBSHEET;
+  qrydg: tadoquery;
+begin
+  if fcon.Connected = false then
+    exit;
+
+  qrydg := tadoquery.create(nil);
+  qrydg.connection := fcon;
+  qrydg.Close;
+  qrydg.SQL.Clear;
+  qrydg.SQL.Add('select  min(底稿名称) as 底稿名称,min(借贷方向) as 借贷方向  from 项目对应关系  where  not 底稿名称 is null ');
+  qrydg.SQL.Add('  and xmid=''' + trim(fxm.xmid) +
+    '''  group by 底稿名称 order by 底稿名称');
+  qrydg.Open;
+
+  SJ1 := NOW();
+  if not DirectoryExists(fxm.xmpath) then
+  begin
+    forceDirectories(fxm.xmpath);
+  end;
+  asdsheet := sdsheet.create;
+  asdsheet.fxm := fxm;
+  asdsheet.fxlsapp := fxlsapp;
+  asdsheet.qrytmp := qrytmp;
+
+  AMXBSHEET := MXBSHEET.Create;
+  AMXBSHEET.fxm := fxm;
+  AMXBSHEET.fxlsapp := fxlsapp;
+  AMXBSHEET.qrytmp := qrytmp;
+
+  fxlsapp.DISPLAYALERTS := false;
+  qrydg.First;
+  for i := 1 to 4 do
+  begin
+    dgname := qrydg.fieldbyname('底稿名称').asstring;
+    dgfx := qrydg.fieldbyname('借贷方向').asstring;
+
+    aworkbook := fxlsapp.workbooks.open(fxm.mbpath + '\' + dgname, EmptyParam,
+      EmptyParam, EmptyParam, EmptyParam,
+      EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam,
+      EmptyParam, EmptyParam, 0);
+
+    for j := 1 to aworkbook.sheets.count do
+    begin
+
+      try
+        if trim(fxlsapp.activeworkbook.sheets.item[j].name) = '审定表' then
+        begin
+          fxlsapp.activeworkbook.sheets.item[j].activate;
+          sheettmp := fxlsapp.activeworkbook.activesheet;
+
+          asdsheet.FDGfilename := dgname;
+          asdsheet.mydirect := dgfx;
+          asdsheet.query;
+          asdsheet.fill;
+        end;
+      except
+      end;
+
+      try
+        if (Pos('账项明细表', fxlsapp.activeworkbook.sheets.item[j].name) > 0)
+          or (trim(fxlsapp.activeworkbook.sheets.item[j].name) = '明细表') then
+        begin
+          fxlsapp.activeworkbook.sheets.item[j].activate;
+          sheettmp := fxlsapp.activeworkbook.activesheet;
+          AMXBSHEET.FDGfilename := dgname;
+          AMXBSHEET.mydirect := dgfx;
+          AMXBSHEET.query;
+          AMXBSHEET.fill;
+        end;
+      except
+      end;
+
+    end;
+
+    try
+      lxyexcel.replace_allsheet(fxlsapp.activeworkbook, fxm);
+    except
+    end;
+
+    fxlsapp.ActiveWorkbook.SaveAs(fxm.xmpath + '\' + dgname, EmptyParam,
+      EmptyParam, EmptyParam,
+      EmptyParam, EmptyParam, xlExclusive, EmptyParam, EmptyParam, EmptyParam,
+      EmptyParam, 0);
+    fxlsapp.ActiveWorkbook.CLOSE;
+
+    qrydg.Next;
+  end;
+  fxlsapp.DISPLAYALERTS := true;
+  qrydg.close;
+  qrydg.free;
+  qrydg := nil;
+end;
+
 
 procedure dgworkbook.import_pzsheet;
 var

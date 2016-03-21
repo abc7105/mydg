@@ -17,7 +17,7 @@ type
     adxCommandBar1: TadxCommandBar;
     adxRibbonTab1: TadxRibbonTab;
     procedure adxCOMAddInModuleAddInInitialize(Sender: TObject);
- 
+
     procedure adxRibbonTab1Controls0Controls1Click(Sender: TObject;
       const RibbonControl: IRibbonControl);
     procedure adxRibbonTab1Controls0Controls5Click(Sender: TObject;
@@ -189,7 +189,6 @@ begin
      //  end;
 
 end;
-
 
 procedure TAddInModule.adxRibbonTab1Controls0Controls1Click(
   Sender: TObject; const RibbonControl: IRibbonControl);
@@ -404,7 +403,7 @@ begin
 
     mymessage('使用提示：' + chr(10) + chr(13) + chr(10) + chr(13) +
       '工作簿中无【凭证表】表格，无法导入数据！  建议您打开【初次使用者指南】-【科目余额表导入的范例表】，' +
-        chr(10) +
+      chr(10) +
       chr(13) +
       '  看系统需要导入的科目余额表是怎样的格式，！' + chr(10) + chr(13)
       );
@@ -525,15 +524,22 @@ begin
 end;
 
 procedure TAddInModule.proc_lmtalltoexcel();
+var
+  adgworkbook: dgworkbook;
 begin
-  if not hasopenxm then
-  begin
-    procopendw;
-  end;
+  try
+    axm := adgsystem.OPENLAST;
+    adgworkbook := dgworkbook.create();
+    adgworkbook.xm := axm;
+    adgworkbook.excelapp := ExcelApp.Application;
+    adgworkbook.filltrial;
+    mymessage('试用版只能支持生成四个报表项目的底稿，如需使用全部功能，请联系QQ:179930269 或EMAIL:abc7105@qq.com .');
+    ShellExecute(0, 'open', PChar(axm.xmpath), 'C:\Windows', nil, 1);
 
-  //  adg.xmid := axm.xmid;
-  //  adg.MBID := axm.mbid;
-  //  adg.limit_database_toexcel;
+  finally
+    adgworkbook.Free;
+    adgworkbook := nil;
+  end;
 end;
 
 procedure TAddInModule.lmtalltoexcel(
@@ -546,19 +552,26 @@ procedure TAddInModule.proc_lmtselecttoexcel();
 var
   aform: Tfmselectdg;
   dglist1: TStringList;
+  adgworkbook: dgworkbook;
+  i: integer;
 begin
-  if not hasopenxm then
-    exit;
-
   try
+    axm := adgsystem.OPENLAST;
+    adgworkbook := dgworkbook.create();
+    adgworkbook.xm := axm;
+    adgworkbook.excelapp := ExcelApp.Application;
+
     aform := Tfmselectdg.Create(nil);
+    aform.kmlist := adgworkbook.getkmlist;
     aform.ShowModal;
 
-    dglist1 := aform.kmlist;
-    //    adg.xmid := axm.xmid;
-    //    adg.MBID := axm.mbid;
-    //    adg.limit_database_select_toexcel(dglist1);
+    adgworkbook.filltrial;
+    mymessage('试用版只能支持生成四个报表项目的底稿，如需使用全部功能，请联系QQ:179930269 或EMAIL:abc7105@qq.com .');
+    ShellExecute(0, 'open', PChar(axm.xmpath), 'C:\Windows', nil, 1);
+
   finally
+    adgworkbook.Free;
+    adgworkbook := nil;
     aform.close;
     aform.Free;
     aform := nil;
@@ -648,7 +661,7 @@ begin
 
     mymessage('使用提示：' + chr(10) + chr(13) + chr(10) + chr(13) +
       '工作簿中无【凭证表】表格，无法导入数据！  建议您打开【初次使用者指南】-【科目余额表导入的范例表】，' +
-        chr(10) +
+      chr(10) +
       chr(13) +
       '  看系统需要导入的科目余额表是怎样的格式，！' + chr(10) + chr(13)
       );
@@ -917,8 +930,8 @@ procedure TAddInModule.adxRibbonTab1Controls2Controls2Click(
   Sender: TObject; const RibbonControl: IRibbonControl);
 begin
   ShellExecute(Application.Handle, 'Open', 'IEXPLORE.EXE',
-    'http://hi.baidu.com/hbwhzysoft/item/623f58c468164d46a9ba9482', '',
-      SW_SHOWNORMAL);
+    'http://lxy7105.web004.host888.net/', '',
+    SW_SHOWNORMAL);
 
 end;
 
@@ -926,8 +939,8 @@ procedure TAddInModule.adxRibbonTab1Controls2Controls1Click(
   Sender: TObject; const RibbonControl: IRibbonControl);
 begin
   ShellExecute(Application.Handle, 'Open', 'IEXPLORE.EXE',
-    'http://hi.baidu.com/hbwhzysoft/item/623f58c468164d46a9ba9482', '',
-      SW_SHOWNORMAL); //Application.Handle
+    'http://lxy7105.web004.host888.net/', '',
+    SW_SHOWNORMAL); //Application.Handle
 
 end;
 
@@ -940,9 +953,6 @@ begin
 
     aform := Tfmadddw.Create(nil);
     aform.connection := ADGSYSTEM.connection;
-    //    aform.connection := mainmdb.DataModule3.conmain;
-        //    aform.xlsapp := ExcelApp.Application;
-
     aform.ShowModal;
   finally
     aform.Close;
@@ -951,7 +961,6 @@ begin
   end;
 end;
 
-//procedure TAddInModule.procopendw;
 
 function TAddInModule.procopendw(): boolean;
 var
@@ -997,7 +1006,7 @@ procedure TAddInModule.adxCommandBar1Controls0Controls21Click(
 begin
   ShellExecute(Application.Handle, 'Open', 'IEXPLORE.EXE',
     'http://hi.baidu.com/hbwhzysoft/item/623f58c468164d46a9ba9482', '',
-      SW_SHOWNORMAL); //Application.Handle
+    SW_SHOWNORMAL); //Application.Handle
 end;
 
 procedure TAddInModule.prev(Sender: TObject;
@@ -1036,7 +1045,7 @@ begin
 
     mymessage('使用提示：' + chr(10) + chr(13) + chr(10) + chr(13) +
       '工作簿中无【凭证表】表格，无法导入数据！  建议您打开【初次使用者指南】-【凭证导入的范例表】，' +
-        chr(10) +
+      chr(10) +
       chr(13) +
       '  看系统需要导入的凭证表是怎样的格式，！' + chr(10) + chr(13)
       );
@@ -1186,7 +1195,7 @@ begin
   //打开初始模板
   mymessage('使用提示：' + chr(10) + chr(13) + chr(10) + chr(13) +
     '您应该将您的科目余额表调整成如下的格式后，再进入导入操作！' + chr(10) +
-      chr(13)
+    chr(13)
     );
   try
     excelapp.Workbooks.Open(mainpath + '科目余额表导入模板.xls'
@@ -1236,3 +1245,4 @@ initialization
   TadxFactory.Create(ComServer, Tmydgs, CLASS_mydgs, TAddInModule);
 
 end.
+
