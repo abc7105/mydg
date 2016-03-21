@@ -1,11 +1,11 @@
 object fmselectdg: Tfmselectdg
-  Left = 806
-  Top = 326
+  Left = 382
+  Top = 167
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = #36873#25321#24744#35201#29983#25104#30340#24213#31295#21517#31216
-  ClientHeight = 378
-  ClientWidth = 432
+  ClientHeight = 482
+  ClientWidth = 439
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,9 +19,11 @@ object fmselectdg: Tfmselectdg
   TextHeight = 13
   object schecklistbox1: TCheckListBox
     Left = 8
-    Top = 48
+    Top = 64
     Width = 409
-    Height = 481
+    Height = 407
+    AllowGrayed = True
+    IntegralHeight = True
     ItemHeight = 13
     TabOrder = 0
   end

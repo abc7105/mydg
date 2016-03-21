@@ -5459,7 +5459,7 @@ object AddInModule: TAddInModule
         Id = 'adxRibbonGroupAB9A617521DC4488B6BE3C17A1D62B13'
         Ribbons = [msrExcelWorkbook]
         Caption = #24403#21069#39033#30446#20449#24687
-        ControlTypes = {04000000070000000F0000000F00000007000000}
+        ControlTypes = {03000000070000000F0000000F000000}
         Controls_ = <
           item
             Glyph.Data = {
@@ -6321,12 +6321,6 @@ object AddInModule: TAddInModule
                 OnClick = adxRibbonTab1Controls0Controls6Controls5Click
                 Caption = #29983#25104#30456#20851#20989#35777#25110#20449#23553
               end>
-          end
-          item
-            Id = 'adxRibbonButton121727FBDF3A4C1F9D18DEC94B976C80'
-            Ribbons = [msrExcelWorkbook]
-            Size = csLarge
-            Caption = #32508#21512#24213#31295
           end>
       end
       item
@@ -8896,6 +8890,7 @@ object AddInModule: TAddInModule
             Id = 'adxRibbonButtonF73749FF3AC6453898EAEB88B480EBA4'
             Ribbons = [msrExcelWorkbook]
             Size = csLarge
+            Visible = False
             OnClick = adxRibbonTab1Controls2Controls1Click
             Caption = #26368#26032#29256#19979#36733
           end
