@@ -1,6 +1,6 @@
 inherited fminfo: Tfminfo
-  Left = 229
-  Top = 29
+  Left = 498
+  Top = 346
   Width = 939
   Height = 645
   Caption = #24213#31295#22522#30784#20449#24687#36755#20837#21450#31185#30446#19982#24213#31295#21517#31216#23545#24212#35774#32622
@@ -185,7 +185,7 @@ inherited fminfo: Tfminfo
         EditMask = '!9999/99/99;1; '
         MaxLength = 10
         TabOrder = 4
-        Text = '    /  /  '
+        Text = '    -  -  '
         BoundLabel.Indent = 0
         BoundLabel.Font.Charset = DEFAULT_CHARSET
         BoundLabel.Font.Color = clWindowText
@@ -208,7 +208,7 @@ inherited fminfo: Tfminfo
         EditMask = '!9999/99/99;1; '
         MaxLength = 10
         TabOrder = 5
-        Text = '    /  /  '
+        Text = '    -  -  '
         BoundLabel.Indent = 0
         BoundLabel.Font.Charset = DEFAULT_CHARSET
         BoundLabel.Font.Color = clWindowText

@@ -5,7 +5,7 @@ interface
 uses
 
   SysUtils, Variants, StrUtils, IniFiles, windows,
-  mydg_TLB, DateUtils, ShellAPI,ushare,communit,
+  mydg_TLB, DateUtils, ShellAPI, ushare, communit,
   Dialogs, Excel2000, ADODB, Classes;
 
 type
@@ -13,8 +13,10 @@ type
     class function intto26(excelcolumn: integer): string;
     class function JFsymbol(direction: string): string;
     class function DFSymbol(direction: string): string;
-    class function rowSUM(SOURCE, JFA, DFA, JFB, DFB, currentROW: INTEGER; DIRECTION: string): string;
-    class function fillacell(Asheet: Variant; column, row: integer; value: variant): Boolean;
+    class function rowSUM(SOURCE, JFA, DFA, JFB, DFB, currentROW: INTEGER;
+      DIRECTION: string): string;
+    class function fillacell(Asheet: Variant; column, row: integer; value:
+      variant): Boolean;
     class function sdb_commandline_num(asheet: Variant): integer;
     class procedure columnsum(asheet: Variant; row, column, directioncol,
       startline: Integer; mydirect: string);
@@ -23,7 +25,8 @@ type
 
     class function UNDIRECT(STR: string): string;
     class procedure replace_asheet(WORKBOOK: VARIANT; sorder: integer);
-    class procedure sheetreplace(AWORKBOOK: VARIANT; iorder: integer; ssource, starget: string);
+    class procedure sheetreplace(AWORKBOOK: VARIANT; iorder: integer; ssource,
+      starget: string);
     class procedure replace_allsheet(WORKBOOKA: VARIANT; axm: xminfo);
     class procedure fillzero(asheet: Variant; ncolumn: integer);
     class function filldate(asheet: Variant; ncolumn: integer): boolean;
@@ -86,16 +89,15 @@ begin
   acol := asheet.Range[asheet.cells.Item[2, ncolumn],
     asheet.cells.Item[ncount, ncolumn]].value;
 
-  for kk := 1 to ncount - 1 do
+  kk := 1;
+  while kk <= ncount - 1 do
   begin
-  //  mymessage(inttostr(vartype(acol[kk, 1])));
-         if (vartype(acol[kk, 1]) = 7) then
-         //日期型不处理
-      ELSE if (vartype(acol[kk, 1]) = 5) then  //数字型
-        acol[kk, 1] := str8todate(IntToStr(acol[kk, 1]))
-      else if  (vartype(acol[kk, 1]) = 8) then         //字符型
-        acol[kk, 1] := str8todate(acol[kk, 1]);
 
+    if VarIsNumeric(acol[kk, 1]) then
+      acol[kk, 1] := str8todate(IntToStr(acol[kk, 1]))
+    else if VarIsStr(acol[kk,1]) then
+      acol[kk, 1] := str8todate(acol[kk, 1]);
+    kk := kk + 1;
   end;
   asheet.Range[asheet.cells.Item[2, ncolumn],
     asheet.cells.Item[ncount, ncolumn]].Value := acol;
@@ -133,7 +135,8 @@ begin
   //  end;
 end;
 
-class procedure lxyexcel.sheetreplace(AWORKBOOK: VARIANT; iorder: integer; ssource, starget: string);
+class procedure lxyexcel.sheetreplace(AWORKBOOK: VARIANT; iorder: integer;
+  ssource, starget: string);
 var
   aa, bb: OleVariant;
   len1: Integer;
@@ -148,7 +151,8 @@ begin
     bb := bb + space(len1 - length(bb));
 
   try
-    Bk.Sheets[iorder].Cells.Replace(aa, bb, EmptyParam, EmptyParam, EmptyParam, EmptyParam);
+    Bk.Sheets[iorder].Cells.Replace(aa, bb, EmptyParam, EmptyParam, EmptyParam,
+      EmptyParam);
   except
   end;
 end;
@@ -190,7 +194,8 @@ begin
   end
 end;
 
-class procedure lxyexcel.mxbcolumnsum(asheet: Variant; row, column, directioncol,
+class procedure lxyexcel.mxbcolumnsum(asheet: Variant; row, column,
+  directioncol,
   startline: Integer; mydirect: string);
 var
   str: string;
@@ -246,7 +251,8 @@ begin
 
 end;
 
-class function lxyexcel.fillacell(Asheet: Variant; column, row: integer; value: variant): Boolean;
+class function lxyexcel.fillacell(Asheet: Variant; column, row: integer; value:
+  variant): Boolean;
 begin
   //
   if column > 0 then
@@ -332,7 +338,8 @@ class function lxyexcel.datefrom_8BIT(STR: string): TDATETIME;
 begin
   //
   try
-    RESULT := EncodeDate(StrToInt(copy(STR, 1, 4)), StrToInt(copy(STR, 5, 2)), StrToInt(copy(STR, 7, 2)));
+    RESULT := EncodeDate(StrToInt(copy(STR, 1, 4)), StrToInt(copy(STR, 5, 2)),
+      StrToInt(copy(STR, 7, 2)));
   except
     RESULT := EncodeDate(1900, 1, 1);
   end;
@@ -361,7 +368,8 @@ begin
   try
     slist.Delimiter := '-';
     slist.DelimitedText := str1;
-    result := EncodeDate(StrToInt(slist[0]), StrToInt(slist[1]), StrToInt(slist[2]));
+    result := EncodeDate(StrToInt(slist[0]), StrToInt(slist[1]),
+      StrToInt(slist[2]));
   finally
     FreeAndNil(slist);
     //
@@ -394,7 +402,8 @@ begin
   try
     slist.Delimiter := '-';
     slist.DelimitedText := str1;
-    result := EncodeDate(StrToInt(slist[0]), StrToInt(slist[1]), StrToInt(slist[2]));
+    result := EncodeDate(StrToInt(slist[0]), StrToInt(slist[1]),
+      StrToInt(slist[2]));
   finally
     FreeAndNil(slist);
   end;
@@ -409,7 +418,7 @@ begin
       result := datefrom_ALPHA(str)
     else if Pos('/', str) > 0 then
       result := datefrom_ALPHA(str)
-          else if Pos('-', str) > 0 then
+    else if Pos('-', str) > 0 then
       result := datefrom_ALPHA(str)
     else if (Pos('年', str) > 0) and (Pos('月', str) > 0) then
       result := datefrom_YEARMONTH(str)
@@ -441,3 +450,4 @@ end;
 { lxydate }
 
 end.
+

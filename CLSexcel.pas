@@ -903,7 +903,6 @@ begin
   qrydg := nil;
 end;
 
-
 procedure dgworkbook.filltrial;
 var
   i, j: integer;
@@ -1005,7 +1004,6 @@ begin
   qrydg.free;
   qrydg := nil;
 end;
-
 
 procedure dgworkbook.import_pzsheet;
 var
@@ -2227,15 +2225,15 @@ procedure import_dxn.DOsql(sqltext: string);
 begin
   //
   try
-  qrytmp.Close;
-  qrytmp.SQL.Clear;
-  qrytmp.ParamCheck := false;
-  qrytmp.SQL.Add(sqltext);
-  qrytmp.ExecSQL;
-  qrytmp.close;
+    qrytmp.Close;
+    qrytmp.SQL.Clear;
+    qrytmp.ParamCheck := false;
+    qrytmp.SQL.Add(sqltext);
+    qrytmp.ExecSQL;
+    qrytmp.close;
   except
     showmessage(sqltext);
-    end;
+  end;
 end;
 
 procedure import_dxn.import;
@@ -2257,22 +2255,25 @@ begin
   try
     sheettmp := fxlsapp.activeworkbook.sheets.item['dxnpzb'];
     sheettmp.select();
+
   except
     mymessage('对不起，您的工作簿中无【dxnpzb】表，无法导入！');
     exit;
   end;
-
-  lxyexcel.filldate(sheettmp, 4);
-
   try
-    sheettmp := fxlsapp.activeworkbook.sheets.item['dxnxmpzb'];
-    sheettmp.select();
+    lxyexcel.filldate(sheettmp, 4);
   except
-    mymessage('对不起，您的工作簿中无【dxnxmpzb】表，无法导入！');
-    exit;
   end;
 
-  lxyexcel.filldate(sheettmp, 24);
+//  try
+//    sheettmp := fxlsapp.activeworkbook.sheets.item['dxnxmpzb'];
+//    sheettmp.select();
+//  except
+//    mymessage('对不起，您的工作簿中无【dxnxmpzb】表，无法导入！');
+//    exit;
+//  end;
+
+  // lxyexcel.filldate(sheettmp, 24);
 
   DOSQL('delete from  DG7 where  trim(XMID)=''' + XMID + '''');
   DOSQL('delete from  DG7 where  xmid is null');
@@ -2292,17 +2293,17 @@ begin
     ShowMessage('科目余额表导入出错');
   end;
 
-  try
-    sqltext :=
-      'INSERT INTO  dg7 (代码,科目名称,核算项目类型,核算项目代码 ,核算项目名称,借贷方向,期初 ,借方发生,贷方发生,期末)' +
-      ' SELECT' +
-      ' 科目编号,"    "+科目名称,核算项目类型名称,核算项目编号,核算项目名称,借贷方向,账面期初数,账面借方发生额,账面贷方发生额,账面期末数 ' +
-      ' FROM [excel 8.0;database=' + fxlsapp.ACTIVEWORKBOOK.fullname +
-      '].[dxnxmyeb$]';
-    DOSQL(sqltext);
-  except
-    ShowMessage('项目余额表导入出错');
-  end;
+//  try
+//    sqltext :=
+//      'INSERT INTO  dg7 (代码,科目名称,核算项目类型,核算项目代码 ,核算项目名称,借贷方向,期初 ,借方发生,贷方发生,期末)' +
+//      ' SELECT' +
+//      ' 科目编号,"    "+科目名称,核算项目类型名称,核算项目编号,核算项目名称,借贷方向,账面期初数,账面借方发生额,账面贷方发生额,账面期末数 ' +
+//      ' FROM [excel 8.0;database=' + fxlsapp.ACTIVEWORKBOOK.fullname +
+//      '].[dxnxmyeb$]';
+//    DOSQL(sqltext);
+//  except
+//    ShowMessage('项目余额表导入出错');
+//  end;
 
   try
     sqltext :=
@@ -2316,17 +2317,17 @@ begin
     ShowMessage('凭证表导入出错');
   end;
 
-  try
-    sqltext :=
-      'INSERT INTO  项目凭证表(日期,  凭证类型, 凭证编号,内编号, 科目编码, 科目名称, 摘要, 借方, 贷方,项目核算类型,项目核算代码,项目核算名称,对方科目)' +
-      ' SELECT' +
-      '  记账时间,凭证种类 ,凭证编号,编号,科目编号, 科目名称,业务说明,借方发生额 ,贷方发生额,核算项目类型编号,核算项目ID,核算项目名称,对方科目名称 '
-      + ' FROM [excel 8.0;database=' + fxlsapp.ACTIVEWORKBOOK.fullname +
-      '].[dxnxmpzb$]';
-    DOSQL(sqltext);
-  except
-     ShowMessage('项目凭证表导入出错');
-  end;
+//  try
+//    sqltext :=
+//      'INSERT INTO  项目凭证表( 凭证类型, 凭证编号,内编号, 科目编码, 科目名称, 摘要, 借方, 贷方,项目核算类型,项目核算代码,项目核算名称,对方科目)' +
+//      ' SELECT' +
+//      '  凭证种类 ,凭证编号,编号,科目编号, 科目名称,业务说明,借方发生额 ,贷方发生额,核算项目类型编号,核算项目ID,核算项目名称,对方科目名称 '
+//      + ' FROM [excel 8.0;database=' + fxlsapp.ACTIVEWORKBOOK.fullname +
+//      '].[dxnxmpzb$]';
+//    DOSQL(sqltext);
+//  except
+//    ShowMessage('项目凭证表导入出错');
+//  end;
 
   DOSQL('UPDATE DG7 SET  XMID=''' + XMID + '''' + ' WHERE XMID is NULL');
   DOSQL('delete from dg7 where trim(代码)=""');

@@ -1,4 +1,4 @@
-unit u_xzh;
+unit uxzhnew;
 
 interface
 uses
@@ -43,10 +43,9 @@ type
     SheetName: array of string;
     xlsdata: VARIANT;
     KeyWordList: TStringList;
-    mbword: Variant;
-    oneword, targetword: Variant;
+    mbword, oneword, targetword: Variable;
+
     DocFilename: string;
-    wordkey, wordvalue: tstringlist;
   private
     function sheetexists(aname: string): boolean;
     function ColumnNo_insheet(keyname: string; columnnames: array of string):
@@ -54,8 +53,10 @@ type
     function Firstdatacell_OfWordtable(AWordtable: Variant): CellXY;
     function MaxColumnCount_InAllsheets: Integer;
 
+    procedure TableData_fromOneTable(tableorder: Integer; aWordTable: Variant);
     function Text_To_Sheetname_AND_ColumnNo(acell: string):
       Sheetname_AND_ColumnNo;
+    procedure arraytoword;
 
     procedure Baseinfo_FromBaseSheet(xWORD: VARIANT);
     procedure replaceword(sourceSTR, targetSTR: string);
@@ -63,20 +64,9 @@ type
     function Othertype_InExcelcell_ToString(asheet: Variant): string;
 
     procedure TterminateOLE(Prossname: string);
-    procedure aWORDTable_FromExcelSHEET(TableOrderNO: integer);
-    function GetOopposiftsheet(atable: Variant): Variant;
+    procedure xlstoarray();
+    procedure aWORDTable_FromExcelSHEET(TableOrderNO:integer);
 
-    function CreateaTemplateSheet(): Variant;
-    procedure general_keywordlist();
-
-    procedure copy_asheet_to_bsheet(asheet, bsheet: Variant);
-    procedure bsheet_into_keywordlist(datasheet: Variant);
-
-    procedure general_all_word_page();
-    procedure general_one_word_page(akeyword: string);
-    procedure general_one_word_tabel(atable: Variant; const akeyword: string);
-    function columeIndexof(asheet: Variant; ColumeName: string): integer;
-    procedure replace_keyvalue();
   public
     constructor create(ExcelApplication: OleVariant; xlsfilename: string);
     procedure ALLsheetdata_intoDOC();
@@ -86,17 +76,9 @@ type
 implementation
 
 uses
-  communit, Udebug;
+  communit;
 
 { xzh }
-
-//=======================================================================
-//        设计思路
-//   1 先从word中将每个表格引用的EXCEL的SHEET作个统计，然后将这些sheet中的第一列数据作为关键字取不重复值放入KEYWORDLIST
-//   2 循环取每个KEYWORD，每个KEYWORD作为一页处理
-//   3 每一页循环复制模板，对每个表格进行处理 ，然后复制到最终表格中去。
-//
-//=======================================================================
 
 constructor xzh.create(ExcelApplication: OleVariant; xlsfilename: string);
 begin
@@ -104,7 +86,6 @@ begin
   KeyWordList := TStringList.Create;
   DocFilename := stringreplace(xlsfilename, '.xlsx', '.doc', []);
   DocFilename := stringreplace(DocFilename, '.xls', '.doc', []);
-
   if not FileExists(DocFilename) then
   begin
     mymessage('没有找到对应的WORD模板文件[*.doc]，不能进行后续生成操作！');
@@ -113,7 +94,6 @@ begin
   ExcelApp := ExcelApplication;
   ExcelApp.workbooks.open(xlsfilename);
 
-  DebugReset;
   TterminateOLE('winword.exe');
   try
     WordApp := CreateOleObject('Word.Application');
@@ -140,297 +120,61 @@ begin
   setlength(columnpos, tablesCount, MaxColumnCount_InAllsheets + 2);
   setlength(SheetName, tablesCount);
 
-  general_keywordlist;
-
-  general_all_word_page;
-  SHOWMESSAGE('函证生成完毕');
-
-end;
-
-procedure xzh.general_all_word_page();
-var
-  i: Integer;
-  keyword: string;
-begin
-  wordkey := tstringlist.create();
-  wordvalue := tstringlist.create();
-  Baseinfo_FromBaseSheet(mbword);
-
-  for i := 0 to KeyWordList.Count - 1 do
+  for i := 1 to tablesCount do
   begin
-
-    mbword.ACTIVATE;
-    WordApp.Selection.WholeStory;
-    WordApp.Selection.Copy;
-
-    ONEWORD.ACTIVATE;
-    WordApp.Selection.WholeStory;
-    WordApp.Selection.DELETE;
-    WordApp.Selection.Paste;
-    WordApp.Selection.HOMEKey(wdStory);
-
-    keyword := keywordlist[i];
-    general_one_word_page(keyword);
-
-    ONEWORD.ACTIVATE;
-    WordApp.Selection.WholeStory;
-    WordApp.Selection.Copy;
-
-    targetword.ACTIVATE;
-    WordApp.Selection.EndKey(wdStory);
-    WordApp.Selection.Paste;
-
+    aWORDTable_FromExcelSHEET(i);
   end;
 
-  MBWORD.CLOSE(FALSE);
-  ONEWORD.CLOSE(FALSE);
-  targetword.ACTIVATE;
-  WordApp.Selection.HOMEKey(wdStory);
-
-   replacewordlike('【*】', '');
-  targetword.saveas(extractfilepath(ExcelApp.activeworkbook.fullname) +
-    trim('temp') + '.doc');
-
-  ExcelApp.activeworkbook.sheets['总表'].delete;
-  ExcelApp.activeworkbook.save;
-
+  //    xlstoarray;
+  //    arraytoword;
 end;
 
-procedure xzh.general_one_word_page(akeyword: string);
+procedure xzh.aWORDTable_FromExcelSHEET(TableOrderNO:integer);
 var
-  i: Integer;
   atable: Variant;
 begin
-  wordkey.clear;
-  wordvalue.clear;
-  for i := 1 to oneword.tables.count do
-  begin
-    atable := oneword.tables.ITEM(i);
-    general_one_word_tabel(atable, AKEYWORD);
-  end;
-
-  replace_keyvalue();
+  atable:=mbword.
 
 end;
 
-procedure xzh.replace_keyvalue();
+procedure xzh.TableData_fromOneTable(tableorder: Integer; aWordTable: Variant);
 var
-  i: Integer;
-begin
-  oneword.activate;
-  for i := 0 to wordkey.count - 1 do
-  begin
-    replaceword(Trim(wordkey.strings[i]), Trim(wordvalue.strings[i]));
-  end;
-
-end;
-
-procedure xzh.general_one_word_tabel(atable: Variant; const akeyword: string);
-var
-  celltext, asheetname: string;
-  i, J, datarow, currow, curcol, columncounts: integer;
-  firstMBcell: CellXY;
+  i, icolumncount: integer;
+  startcell: CellXY;
   aSheetname_AND_ColumnNo: Sheetname_AND_ColumnNo;
-  TABLECOLUMN_TO_EXCELCOLUMN: array of Integer;
-  linecount: Integer;
-  asheet: Variant;
+  atext: string;
+  sheetcolumnscount: integer;
+  sheetcolumnsname: array of string;
 begin
+  //
+  startcell := Firstdatacell_OfWordtable(aWordTable);
+  atext := aWordTable.cell(startcell.row, startcell.column).range.text;
+  aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(atext);
+  SheetName[tableorder] := aSheetname_AND_ColumnNo.SheetName;
 
-  firstMBcell := Firstdatacell_OfWordtable(atable);
-  celltext := atable.cell(firstMBcell.row, firstMBcell.COLUMN).range.text;
-  aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(celltext);
-  asheetname := aSheetname_AND_ColumnNo.SheetName;
-  if trim(asheetname) = '' then
+  if not sheetexists(aSheetname_AND_ColumnNo.SheetName) then
     exit;
 
-  asheet := excelapp.activeworkbook.sheets.item[asheetname];
-  columncounts := atable.columns.count;
-  datarow := firstMBcell.row;
+  ExcelApp.activeworkbook.sheets[aSheetname_AND_ColumnNo.SheetName].activate;
+  sheetcolumnscount :=
+    ExcelApp.activeworkbook.activesheet.usedrange.columns.count;
+  SetLength(sheetcolumnsname, sheetcolumnscount);
+  columnpos[tableorder, 0] := startcell.row;
 
-  SetLength(TABLECOLUMN_TO_EXCELCOLUMN, columncounts);
-  for i := 0 to columncounts - 1 do
+  for i := 1 to sheetcolumnscount do
+    sheetcolumnsname[i - 1] := ExcelApp.activeworkbook.activesheet.cells[2, i];
+
+  for i := 1 to aWordTable.columns.count do
   begin
-    celltext := atable.cell(datarow, I + 1).range.text;
-    aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(celltext);
-    TABLECOLUMN_TO_EXCELCOLUMN[I] := columeIndexof(asheet,
-      aSheetname_AND_ColumnNo.columnname);
+    atext := aWordTable.cell(startcell.row, i).range.text;
+    aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(atext);
+    columnpos[tableorder, i + 1] :=
+      ColumnNo_insheet(aSheetname_AND_ColumnNo.columnname,
+      sheetcolumnsname) + 1;
   end;
 
-  LINECOUNT := 1;
-  for I := 1 to VarArrayHighBound(xlsdata, 1) do //1时为行数，2为列数
-  begin
-    if ((xlsdata[i, 2] = akeyword) and (xlsdata[i, 1] = asheetname)) then
-    begin
-      if LINECOUNT = 1 then
-      begin
-        //替换唯一值
-      end;
+  columnpos[tableorder, 1] := aWordTable.columns.count;
 
-      if LINECOUNT > 1 then //不是第一行，在word表中增加一行
-      begin
-        ATABLE.CELL(datarow + LINECOUNT - 1, 1).range.Select;
-        WordApp.Selection.InsertRowsBelow(1);
-      end;
-
-      if LINECOUNT = 1 then
-      begin
-        //替换唯一值
-        for j := 1 to asheet.columns.count do
-        begin
-          if trim(asheet.cells.item[2, j].text) <> '' then
-          begin
-            wordkey.add('【' + trim(asheet.name) + '.' +
-              trim(asheet.cells.item[2, j].text) + '】');
-            wordvalue.add(xlsdata[i, j + 1]);
-            debugto(wordkey.strings[wordkey.Count - 1] + ' = ' +
-              wordvalue.strings[wordkey.Count - 1]);
-          end;
-        end;
-      end;
-
-      for J := 0 to columncounts - 1 do
-      begin
-        try
-          atable.cell(datarow + LINECOUNT - 1, j + 1).RANGE.text := xlsdata[i,
-            TABLECOLUMN_TO_EXCELCOLUMN[j]];
-        except
-        end;
-        Inc(LINECOUNT);
-      end;
-    end;
-  end;
-end;
-
-function xzh.columeIndexof(asheet: Variant; ColumeName: string): integer;
-var
-  i: Integer;
-begin
-  result := 0;
-  for i := 1 to asheet.usedrange.columns.Count do
-  begin
-    if trim(asheet.usedrange.cells.item[2, i].text) = Trim(ColumeName) then
-    begin
-      result := i + 1;
-      break;
-    end;
-  end;
-end;
-
-procedure xzh.general_keywordlist();
-var
-  asheetname: string;
-  atable, asheet, bsheet: Variant;
-  rows, cols: integer;
-  i: integer;
-  acell: CellXY;
-  atext: string;
-  aSheetname_AND_ColumnNo: Sheetname_AND_ColumnNo;
-begin
-  try
-    bsheet := CreateaTemplateSheet;
-
-    for i := 1 to mbword.tables.count do
-    begin
-      atable := mbword.tables.item(i);
-      acell := Firstdatacell_OfWordtable(atable);
-      atext := atable.cell(acell.row, acell.column).range.text;
-      aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(atext);
-      sheetname[i] := aSheetname_AND_ColumnNo.SheetName;
-      asheet := excelapp.activeworkbook.sheets.item[sheetname[i]];
-
-      copy_asheet_to_bsheet(asheet, bsheet);
-    end;
-  except
-  end;
-
-  Othertype_InExcelcell_ToString(bsheet);
-  bsheet_into_keywordlist(bsheet);
-  ExcelApp.ActiveWorkbook.Save;
-
-end;
-
-procedure xzh.bsheet_into_keywordlist(datasheet: Variant);
-var
-  i, rows, cols, allrec: integer;
-begin
-  datasheet.Activate;
-  ROWS := datasheet.usedrange.rows.count;
-  cols := datasheet.usedrange.columns.count;
-  xlsdata :=
-    datasheet.Range[datasheet.cells.Item[1, 1], datasheet.cells.Item[rows,
-    cols]].Value;
-
-  KeyWordList.Clear;
-  allrec := 0;
-
-  //从总表中将所有关键值加入到keywordlist;             第二列必须是关键字
-  //取得需打印的所有表中不重复的关键值到KEYWORDLIST;
-  try
-    for i := 1 to rows do
-    begin
-      if Trim(xlsdata[i, 2]) <> '' then
-        if KeyWordList.IndexOf(xlsdata[i, 2]) = -1 then
-        begin
-          KeyWordList.Add(xlsdata[i, 2]);
-        end;
-    end;
-  except
-  end;
-
-end;
-
-procedure xzh.copy_asheet_to_bsheet(asheet, bsheet: variant);
-var
-  allrec: Integer;
-begin
-  allrec := bsheet.usedrange.rows.count + 1;
-  asheet.Activate;
-  asheet.cells.select;
-  asheet.cells.UnMerge;
-
-  bsheet.Activate;
-
-  //将每一个数据表的内容复制到临时表 总表中
-  asheet.usedrange.copy(bsheet.range['b' + trim(inttostr(allrec)),
-    emptyparam]);
-
-  //将第一列改为数据所对应表的表格
-  bsheet.range['a' + trim(inttostr(allrec)), 'a' + trim(inttostr(allrec
-    + asheet.usedrange.rows.count - 1))].value := asheet.Name;
-
-  bsheet.range['a' + trim(inttostr(allrec)), 'a' + trim(inttostr(allrec
-    + 1))].EntireRow.DELETE;
-
-  //  allrec := allrec + asheet.usedrange.rows.count - 2;
-end;
-
-procedure xzh.aWORDTable_FromExcelSHEET(TableOrderNO: integer);
-var
-  atable: Variant;
-  OppositeSheet: Variant; //对应的
-
-begin
-  atable := mbword.tables.item(TableOrderNO);
-  OppositeSheet := GetOopposiftsheet(atable);
-  OppositeSheet.activate;
-
-end;
-
-function xzh.GetOopposiftsheet(atable: Variant): Variant;
-//word表对应的EXCEL中的sheet
-var
-  celltext, asheetname: string;
-  wordcellXY: CellXY;
-begin
-  result := null;
-  try
-    wordcellXY := Firstdatacell_OfWordtable(atable);
-    celltext := atable.cell(wordcellXY.row, wordcellXY.column).range.text;
-    asheetname := Trim(Text_To_Sheetname_AND_ColumnNo(celltext).SheetName);
-    result := ExcelApp.activeworkbook.sheets[asheetname];
-  except
-
-  end;
 end;
 
 function xzh.MaxColumnCount_InAllsheets: Integer;
@@ -546,6 +290,219 @@ begin
   RESULT := BSHEET;
 end;
 
+procedure xzh.xlstoarray;
+var
+  i, j: integer;
+  thissheet: Variant;
+  asheet, bsheet: Variant;
+  allrec, rows, cols: Integer;
+begin
+
+  //将所有表的关键值复制到总表中
+  bsheet := CreateaTemplateSheet;
+
+  allrec := 1;
+  for i := 0 to High(SheetName) do
+  begin
+    if (SheetName[i] <> '') and (sheetexists(SheetName[i])) then
+    begin
+      asheet := ExcelApp.activeworkbook.sheets[SheetName[i]];
+      try
+        asheet.Activate;
+        asheet.cells.select;
+        asheet.cells.UnMerge;
+        bsheet.Activate;
+
+        //将每一个数据表的内容复制到临时表 总表中
+        asheet.usedrange.copy(bsheet.range['b' + trim(inttostr(allrec)),
+          emptyparam]);
+
+        //将第一列改为数据所对应表的表格
+        bsheet.range['a' + trim(inttostr(allrec)), 'a' + trim(inttostr(allrec
+          + asheet.usedrange.rows.count - 1))].value := asheet.Name;
+        bsheet.range['a' + trim(inttostr(allrec)), 'a' + trim(inttostr(allrec
+          + 1))].EntireRow.DELETE;
+
+        allrec := allrec + asheet.usedrange.rows.count - 2;
+      except
+      end;
+    end;
+  end;
+
+  Othertype_InExcelcell_ToString(bsheet);
+
+  bsheet.Activate;
+  ROWS := BSHEET.usedrange.rows.count;
+  cols := bsheet.usedrange.columns.count;
+  xlsdata :=
+    bsheet.Range[bsheet.cells.Item[1, 1], bsheet.cells.Item[rows, cols]].Value;
+
+  KeyWordList.Clear;
+  allrec := 0;
+
+  //从总表中将所有关键值加入到keywordlist;
+  //取得需打印的所有表中不重复的关键值到KEYWORDLIST;
+  try
+    for i := 1 to rows do
+    begin
+      if Trim(xlsdata[i, 2]) <> '' then
+        if KeyWordList.IndexOf(xlsdata[i, 2]) = -1 then
+        begin
+          KeyWordList.Add(xlsdata[i, 2]);
+        end;
+    end;
+  except
+  end;
+
+  ExcelApp.ActiveWorkbook.Save;
+end;
+
+procedure XZH.GeneralOnePage(keyorder: Integer);
+begin
+  xzperson := KeyWordList[i];
+  linecount := 0;
+  oldSheetName := '';
+  for j := 1 to VarArrayHighBound(xlsdata, 1) do
+  begin
+    if xlsdata[j, 2] = KeyWordList[keyorder] then
+    begin
+      GeneralOneLine;
+    end;
+  end;
+end;
+//========
+AWORD.ACTIVATE;
+replaceword('【询证对象】', Trim(xzperson));
+
+end;
+
+procedure xzh.GeneralOneLine()
+begin
+  for WordTableNo := 0 to High(SheetName) do
+  begin
+    if xlsdata[j, 1] = SheetName[WordTableNo] then
+    begin
+      if SheetName[WordTableNo] <> oldSheetName then
+        linecount := 0
+      else
+        linecount := linecount + 1;
+
+      oldSheetName := SheetName[WordTableNo];
+      curtable := aword.tables.item(WordTableNo + 1);
+      current_row_inwordtable := columnpos[WordTableNo, 0] +
+        linecount;
+      curtable.cell(current_row_inwordtable, 1).range.Select;
+      WordApp.Selection.InsertRowsBelow(1);
+
+      for current_col_inwordtable := 1 to columnpos[WordTableNo,
+        1] do
+        //word表格中的第一列到最后一列 ，columnpos[k,1]中是其总列数
+      begin
+        wordcolumn_inxlscolumn := columnpos[WordTableNo,
+          current_col_inwordtable + 1];
+        try
+          if wordcolumn_inxlscolumn > 0 then
+            curtable.cell(current_row_inwordtable,
+              current_col_inwordtable).range.text := xlsdata[j,
+              wordcolumn_inxlscolumn + 1]
+          else
+            curtable.cell(current_row_inwordtable,
+              current_col_inwordtable).range.text := '';
+        except
+          curtable.cell(current_row_inwordtable,
+            current_col_inwordtable).range.text := '';
+        end;
+      end;
+    end;
+
+  end;
+
+procedure xzh.arraytoword;
+var
+  aword, baseword, lastword: variant;
+  i, j, k, m: integer;
+  tmp: integer;
+  wordcolumn_inxlscolumn: integer;
+  current_row_inwordtable, current_col_inwordtable, WordTableNo:
+    integer;
+  xzperson: string;
+  curtable: Variant;
+  linecount: integer;
+  oldSheetName: string;
+begin
+  //
+  baseword := WordApp.activedocument;
+  Baseinfo_FromBaseSheet(baseword);
+
+  //复制模板版-> aword->lastword文档中
+  WordApp.Selection.WholeStory;
+  WordApp.Selection.Copy;
+  LASTWORD := WordApp.Documents.Add();
+  aword := WordApp.Documents.Add();
+  WordApp.Selection.Paste;
+
+  for i := 0 to KeyWordList.count - 1 do
+  begin
+
+    GeneralOnePage;
+
+    WordApp.Selection.WholeStory;
+    WordApp.Selection.Copy;
+    LASTWORD.ACTIVATE;
+    WordApp.Selection.EndKey(wdStory);
+    WordApp.Selection.Paste;
+
+    BASEWORD.ACTIVATE;
+    WordApp.Selection.WholeStory;
+    WordApp.Selection.Copy;
+    AWORD.ACTIVATE;
+    WordApp.Selection.WholeStory;
+    WordApp.Selection.DELETE;
+    WordApp.Selection.Paste;
+  end;
+
+  BASEWORD.CLOSE(false);
+  AWORD.CLOSE(false);
+  lastword.activate;
+  replacewordlike('【*】', '');
+  lastword.saveas(extractfilepath(ExcelApp.activeworkbook.fullname) +
+    trim(xzperson) + '.doc');
+
+  ExcelApp.activeworkbook.sheets['总表'].delete;
+  ExcelApp.activeworkbook.save;
+  mymessage('OK');
+end;
+
+procedure xzh.fillonetable(aword: Variant; wordtableno: Integer; linecount:
+  integer);
+var
+  curtable: Variant;
+  wordtableROW, wordtableCOL: Integer;
+
+begin
+
+  curtable := aword.tables.item(WordTableNo + 1);
+  wordtableROW := columnpos[WordTableNo, 0] + linecount;
+  curtable.cell(wordtableROW, 1).range.Select;
+  WordApp.Selection.InsertRowsBelow(1);
+
+  //word表格中的第一列到最后一列 ，columnpos[k,1]中是其总列数
+  for wordtableCOL := 1 to columnpos[WordTableNo, 1] do
+  begin
+    wordcolumn_inxlscolumn := columnpos[WordTableNo, wordtableCOL + 1];
+    try
+      if wordcolumn_inxlscolumn > 0 then
+        curtable.cell(wordtableROW, wordtableCOL).range.text := xlsdata[j,
+          wordcolumn_inxlscolumn + 1]
+      else
+        curtable.cell(wordtableROW, wordtableCOL).range.text := '';
+    except
+      curtable.cell(wordtableROW, wordtableCOL).range.text := '';
+    end;
+  end;
+
+end;
+
 procedure xzh.TterminateOLE(Prossname: string);
 var
   FSnapshotHandle: THandle;
@@ -659,4 +616,4 @@ begin
 end;
 
 end.
-
+ 

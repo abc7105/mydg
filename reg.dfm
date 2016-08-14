@@ -1,6 +1,6 @@
 object fmreg: Tfmreg
-  Left = 402
-  Top = 194
+  Left = 609
+  Top = 234
   VertScrollBar.Style = ssFlat
   BorderIcons = []
   BorderStyle = bsSingle
@@ -187,7 +187,7 @@ object fmreg: Tfmreg
     Width = 385
     Height = 25
     AutoSize = False
-    Caption = #23436#25104#25903#20184#12290#26412#36719#20214#20215#26684#20026'200'#20803#65292#24744#21487#20197#29992#20197#19979#26041#24335#25903#20184
+    Caption = #23436#25104#25903#20184#12290#26412#36719#20214#20215#26684#20026'300'#20803#65292#24744#21487#20197#29992#20197#19979#26041#24335#25903#20184
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -12

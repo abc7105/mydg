@@ -5450,7 +5450,6 @@ object AddInModule: TAddInModule
             Id = 'adxRibbonButtonA2B96F5A0A20400CB82FD41C53428828'
             Ribbons = [msrExcelWorkbook]
             Size = csLarge
-            Visible = False
             OnClick = moneysheet
             Caption = #32534#21046#29616#37329#27969#37327#34920
           end>

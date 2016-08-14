@@ -20,7 +20,8 @@ uses
   UnitHardInfo in '..\ShareUnit\UnitHardInfo.pas',
   reg in 'reg.pas' {fmreg},
   communit in 'communit.pas',
-  mydg_IMPL in 'mydg_IMPL.pas' {AddInModule: TadxCOMAddInModule};
+  mydg_IMPL in 'mydg_IMPL.pas' {AddInModule: TadxCOMAddInModule},
+  Udebug in 'Udebug.pas';
 
 exports
   DllGetClassObject,

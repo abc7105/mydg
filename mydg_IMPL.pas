@@ -921,7 +921,7 @@ begin
       end;
 
       axzh := xzh.create(ExcelApp.Application, pathstr);
-      axzh.alltables_tonumber;
+      axzh.ALLsheetdata_intoDOC;
     end
 
 end;
@@ -1245,4 +1245,3 @@ initialization
   TadxFactory.Create(ComServer, Tmydgs, CLASS_mydgs, TAddInModule);
 
 end.
-
