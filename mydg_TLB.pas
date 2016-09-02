@@ -12,7 +12,7 @@ unit mydg_TLB;
 // ************************************************************************ //
 
 // PASTLWTR : 1.2
-// File generated on 2016-8-14 8:27:31 from Type Library described below.
+// File generated on 2016-9-2 10:11:09 from Type Library described below.
 
 // ************************************************************************  //
 // Type Lib: D:\2014prg\mydg\mydg.tlb (1)

@@ -51,7 +51,7 @@ var
 implementation
 
 uses
-  jm,  communit;
+  jm,  communit, Udebug;
 
 {$R *.dfm}
 

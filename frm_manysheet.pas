@@ -72,7 +72,7 @@ var
 
 implementation
 
-uses communit;
+uses communit, Udebug;
 
 {$R *.dfm}
 

@@ -83,7 +83,6 @@ var
   sheetchange: boolean;
   OLDSHEETNAME: string;
   taskpanelISOpen: boolean;
-  mainpath: string;
   conMAIN: TADOConnection;
 
 implementation

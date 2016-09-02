@@ -4,7 +4,7 @@ interface
 uses
   Forms, Windows, Messages, Graphics, Controls,
   SysUtils, ComObj, Variants, ushare,
-  TLhelp32, ExtCtrls, Word2000,
+  TLhelp32, ExtCtrls, Word2000, ShellAPI,
   Dialogs, StrUtils, ADODB, Classes;
 
 const
@@ -40,7 +40,7 @@ type
     ExcelApp: Variant;
     WordApp: Variant;
     columnpos: array of array of integer;
-    SheetName: array of string;
+    dataSheetName: array of string;
     xlsdata: VARIANT;
     KeyWordList: TStringList;
     mbword: Variant;
@@ -138,13 +138,13 @@ begin
 
   tablesCount := mbword.tables.count;
   setlength(columnpos, tablesCount, MaxColumnCount_InAllsheets + 2);
-  setlength(SheetName, tablesCount);
+  setlength(dataSheetName, tablesCount);
 
   general_keywordlist;
-
   general_all_word_page;
-  SHOWMESSAGE('函证生成完毕');
 
+ // ShellExecute(0, 'open', PChar(mainpath + 'test.txt'), nil, nil, 1);
+  SHOWMESSAGE('函证的WORD文档生成完毕');
 end;
 
 procedure xzh.general_all_word_page();
@@ -152,13 +152,26 @@ var
   i: Integer;
   keyword: string;
 begin
+  //debugto('开始处理所有页');
   wordkey := tstringlist.create();
   wordvalue := tstringlist.create();
-  Baseinfo_FromBaseSheet(mbword);
 
+  //debugto('’取得基本信息');
+  Baseinfo_FromBaseSheet(mbword);
+  //debugto('取得基本信息结束 ！');
+
+  if KeyWordList.Count < 1 then
+  begin
+    //   SHOWMESSAGE('主关键字为空，请检查您的数据填写是否正确！');
+    EXIT;
+  end;
+
+  //debugto(inttostr(KeyWordList.Count));
   for i := 0 to KeyWordList.Count - 1 do
   begin
-
+    //debugto('=====================================');
+    //debugto('162开始 处理 ' + inttostr(i) + '关键词');
+    //debugto('=====================================');
     mbword.ACTIVATE;
     WordApp.Selection.WholeStory;
     WordApp.Selection.Copy;
@@ -179,7 +192,8 @@ begin
     targetword.ACTIVATE;
     WordApp.Selection.EndKey(wdStory);
     WordApp.Selection.Paste;
-
+    //  if i > 0 then
+    WordApp.Selection.InsertBreak(type := wdPageBreak);
   end;
 
   MBWORD.CLOSE(FALSE);
@@ -187,13 +201,12 @@ begin
   targetword.ACTIVATE;
   WordApp.Selection.HOMEKey(wdStory);
 
-   replacewordlike('【*】', '');
+  replacewordlike('【*】', '');
   targetword.saveas(extractfilepath(ExcelApp.activeworkbook.fullname) +
     trim('temp') + '.doc');
 
   ExcelApp.activeworkbook.sheets['总表'].delete;
   ExcelApp.activeworkbook.save;
-
 end;
 
 procedure xzh.general_one_word_page(akeyword: string);
@@ -203,14 +216,15 @@ var
 begin
   wordkey.clear;
   wordvalue.clear;
+
   for i := 1 to oneword.tables.count do
   begin
+    //debugto(inttostr(i) + ' 表 ' + akeyword);
     atable := oneword.tables.ITEM(i);
     general_one_word_tabel(atable, AKEYWORD);
   end;
 
   replace_keyvalue();
-
 end;
 
 procedure xzh.replace_keyvalue();
@@ -220,6 +234,8 @@ begin
   oneword.activate;
   for i := 0 to wordkey.count - 1 do
   begin
+    //debugto('226行 ' + inttostr(i) + '次' +
+  //    Trim(wordkey.strings[i]) + ' 227行  xx  ' + Trim(wordvalue.strings[i]));
     replaceword(Trim(wordkey.strings[i]), Trim(wordvalue.strings[i]));
   end;
 
@@ -237,23 +253,36 @@ var
 begin
 
   firstMBcell := Firstdatacell_OfWordtable(atable);
+  if (firstMBcell.row = -1) or (firstMBcell.COLUMN = -1) then
+    exit;
+
   celltext := atable.cell(firstMBcell.row, firstMBcell.COLUMN).range.text;
   aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(celltext);
   asheetname := aSheetname_AND_ColumnNo.SheetName;
   if trim(asheetname) = '' then
     exit;
 
-  asheet := excelapp.activeworkbook.sheets.item[asheetname];
+  try
+    asheet := excelapp.activeworkbook.sheets.item[asheetname];
+    //debugto(asheetname + '267 ok');
+  except
+    //debugto(asheetname + '267无对应的数据表sheet  ERR');
+    exit;
+
+  end;
   columncounts := atable.columns.count;
   datarow := firstMBcell.row;
 
   SetLength(TABLECOLUMN_TO_EXCELCOLUMN, columncounts);
   for i := 0 to columncounts - 1 do
   begin
-    celltext := atable.cell(datarow, I + 1).range.text;
-    aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(celltext);
-    TABLECOLUMN_TO_EXCELCOLUMN[I] := columeIndexof(asheet,
-      aSheetname_AND_ColumnNo.columnname);
+    try
+      celltext := atable.cell(datarow, I + 1).range.text;
+      aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(celltext);
+      TABLECOLUMN_TO_EXCELCOLUMN[I] := columeIndexof(asheet,
+        aSheetname_AND_ColumnNo.columnname);
+    except
+    end;
   end;
 
   LINECOUNT := 1;
@@ -261,10 +290,6 @@ begin
   begin
     if ((xlsdata[i, 2] = akeyword) and (xlsdata[i, 1] = asheetname)) then
     begin
-      if LINECOUNT = 1 then
-      begin
-        //替换唯一值
-      end;
 
       if LINECOUNT > 1 then //不是第一行，在word表中增加一行
       begin
@@ -277,13 +302,14 @@ begin
         //替换唯一值
         for j := 1 to asheet.columns.count do
         begin
-          if trim(asheet.cells.item[2, j].text) <> '' then
-          begin
-            wordkey.add('【' + trim(asheet.name) + '.' +
-              trim(asheet.cells.item[2, j].text) + '】');
-            wordvalue.add(xlsdata[i, j + 1]);
-            debugto(wordkey.strings[wordkey.Count - 1] + ' = ' +
-              wordvalue.strings[wordkey.Count - 1]);
+          try
+            if trim(asheet.cells.item[2, j].text) <> '' then
+            begin
+              wordkey.add('【' + trim(asheet.name) + '.' +
+                trim(asheet.cells.item[2, j].text) + '】');
+              wordvalue.add(xlsdata[i, j + 1]);
+            end;
+          except
           end;
         end;
       end;
@@ -291,12 +317,19 @@ begin
       for J := 0 to columncounts - 1 do
       begin
         try
-          atable.cell(datarow + LINECOUNT - 1, j + 1).RANGE.text := xlsdata[i,
-            TABLECOLUMN_TO_EXCELCOLUMN[j]];
+          if TABLECOLUMN_TO_EXCELCOLUMN[j] <> 0 then
+            atable.cell(datarow + LINECOUNT - 1, j + 1).RANGE.text :=
+              xlsdata[i, TABLECOLUMN_TO_EXCELCOLUMN[j]];
+
+          //debugto('303 行:' + inttostr(datarow + LINECOUNT - 1) +
+    //        ' 列:' + inttostr(j + 1) +
+//            ' 值' + xlsdata[i, TABLECOLUMN_TO_EXCELCOLUMN[j]]);
+
         except
         end;
-        Inc(LINECOUNT);
+
       end;
+      Inc(LINECOUNT);
     end;
   end;
 end;
@@ -326,25 +359,39 @@ var
   atext: string;
   aSheetname_AND_ColumnNo: Sheetname_AND_ColumnNo;
 begin
-  try
-    bsheet := CreateaTemplateSheet;
+  bsheet := CreateaTemplateSheet;
+  //debugto('general_keywordlist  ===========' + bsheet.name);
 
-    for i := 1 to mbword.tables.count do
-    begin
-      atable := mbword.tables.item(i);
-      acell := Firstdatacell_OfWordtable(atable);
-      atext := atable.cell(acell.row, acell.column).range.text;
-      aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(atext);
-      sheetname[i] := aSheetname_AND_ColumnNo.SheetName;
-      asheet := excelapp.activeworkbook.sheets.item[sheetname[i]];
+  for i := 1 to mbword.tables.count do
+  begin
+    atable := mbword.tables.item(i);
+    acell := Firstdatacell_OfWordtable(atable);
+    if (acell.row < 1) or (acell.column < 1) then
+      Break;
 
+    atext := atable.cell(acell.row, acell.column).range.text;
+    aSheetname_AND_ColumnNo := Text_To_Sheetname_AND_ColumnNo(atext);
+
+    //   datasheetname[i] := aSheetname_AND_ColumnNo.SheetName;
+    try
+      asheet :=
+        excelapp.activeworkbook.sheets.item[aSheetname_AND_ColumnNo.SheetName];
+      //debugto('general_keywordlist:' + IntToStr(i) + asheet.name);
       copy_asheet_to_bsheet(asheet, bsheet);
+    except
+      //debugto('error' + inttostr(i));
     end;
-  except
   end;
 
-  Othertype_InExcelcell_ToString(bsheet);
-  bsheet_into_keywordlist(bsheet);
+  try
+    Othertype_InExcelcell_ToString(bsheet);
+  except
+  end;
+  try
+    //debugto('general_keywordlist:LAST :*****' + bsheet.name);
+    bsheet_into_keywordlist(bsheet);
+  except
+  end;
   ExcelApp.ActiveWorkbook.Save;
 
 end;
@@ -353,30 +400,35 @@ procedure xzh.bsheet_into_keywordlist(datasheet: Variant);
 var
   i, rows, cols, allrec: integer;
 begin
-  datasheet.Activate;
-  ROWS := datasheet.usedrange.rows.count;
-  cols := datasheet.usedrange.columns.count;
-  xlsdata :=
-    datasheet.Range[datasheet.cells.Item[1, 1], datasheet.cells.Item[rows,
-    cols]].Value;
-
-  KeyWordList.Clear;
-  allrec := 0;
-
-  //从总表中将所有关键值加入到keywordlist;             第二列必须是关键字
-  //取得需打印的所有表中不重复的关键值到KEYWORDLIST;
   try
-    for i := 1 to rows do
-    begin
-      if Trim(xlsdata[i, 2]) <> '' then
-        if KeyWordList.IndexOf(xlsdata[i, 2]) = -1 then
-        begin
-          KeyWordList.Add(xlsdata[i, 2]);
-        end;
+
+    datasheet.Activate;
+    //debugto('385 bsheet_into_keywordlist:' + datasheet.name);
+    ROWS := datasheet.usedrange.rows.count;
+    cols := datasheet.usedrange.columns.count;
+
+    xlsdata :=
+      datasheet.Range[datasheet.cells.Item[1, 1], datasheet.cells.Item[rows,
+      cols]].Value;
+
+    KeyWordList.Clear;
+    allrec := 0;
+
+    //从总表中将所有关键值加入到keywordlist;             第二列必须是关键字
+    //取得需打印的所有表中不重复的关键值到KEYWORDLIST;
+    try
+      for i := 1 to rows do
+      begin
+        if Trim(xlsdata[i, 2]) <> '' then
+          if KeyWordList.IndexOf(xlsdata[i, 2]) = -1 then
+          begin
+            KeyWordList.Add(xlsdata[i, 2]);
+          end;
+      end;
+    except
     end;
   except
   end;
-
 end;
 
 procedure xzh.copy_asheet_to_bsheet(asheet, bsheet: variant);
@@ -474,20 +526,21 @@ begin
   irowcount := xtabel.rows.count;
   icolcount := xtabel.columns.count;
 
-  try
-    for j := 1 to icolcount do
-      for i := 1 to irowcount do
-        if xtabel.cell(i, j).rowindex <> -1 then
+  for j := 1 to icolcount do
+    for i := 1 to irowcount do
+      try
+        if xtabel.cell(i, j).rowindex > 0 then
         begin
           if Pos('【', xtabel.cell(i, j).range.text) > 0 then
           begin
+            //           ShowMessage('486:' + xtabel.cell(i, j).range.text);
             result.row := i;
             Result.column := j;
-            break;
+            exit;
           end;
         end;
-  except
-  end;
+      except
+      end;
 end;
 
 function xzh.Text_To_Sheetname_AND_ColumnNo(acell: string):
@@ -576,19 +629,25 @@ var
   i, rows, cols: integer;
   asheet: Variant;
 begin
-  asheet := ExcelApp.ACTIVEWORKbook.sheets['基本情况'];
-  asheet.activate;
+  try
+    asheet := ExcelApp.ACTIVEWORKbook.sheets['基本情况'];
+    asheet.activate;
 
-  Othertype_InExcelcell_ToString(asheet);
+    Othertype_InExcelcell_ToString(asheet);
 
-  rows := asheet.usedrange.rows.count;
-  xword.activate;
-  baseinfo := asheet.range[asheet.cells.Item[1, 1], asheet.cells.Item[rows,
-    2]].value;
-  for i := 1 to rows do
-  begin
-    baseinfo[i, 1] := '【基本情况.' + trim(baseinfo[i, 1]) + '】';
-    replaceword(baseinfo[i, 1], Trim(baseinfo[i, 2]));
+    rows := asheet.usedrange.rows.count;
+    xword.activate;
+    baseinfo := asheet.range[asheet.cells.Item[1, 1], asheet.cells.Item[rows,
+      2]].value;
+    for i := 1 to rows do
+    begin
+
+      baseinfo[i, 1] := '【基本情况.' + trim(baseinfo[i, 1]) + '】';
+      replaceword(baseinfo[i, 1], baseinfo[i, 2]);
+      //debugto('【基本情况.' + trim(baseinfo[i, 1]) + '】  ==' + baseinfo[i, 2]);
+    end;
+  except
+
   end;
 end;
 
@@ -596,7 +655,6 @@ procedure xzh.replaceword(sourceSTR, targetSTR: string);
 begin
   //   替换
   WordApp.Selection.homeKey(unit := wdStory);
-
   WordApp.Selection.Find.ClearFormatting;
   WordApp.Selection.Find.Replacement.ClearFormatting;
   WordApp.Selection.Find.Text := sourceSTR;
@@ -655,8 +713,6 @@ begin
           asheet.cells.item[i, j].value := strval;
         end;
     end;
-
 end;
 
 end.
-

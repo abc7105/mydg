@@ -49,7 +49,7 @@ var
 implementation
 
 uses
-  CLSexcel;
+  CLSexcel, Udebug;
 
 {$R *.dfm}
 

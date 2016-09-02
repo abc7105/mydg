@@ -38,7 +38,7 @@ var
 implementation
 
 uses
-  communit, mainmdb, lxydatabase, CLSexcel, ushare;
+  communit, mainmdb, lxydatabase, CLSexcel, ushare, Udebug;
 
 {$R *.dfm}
 

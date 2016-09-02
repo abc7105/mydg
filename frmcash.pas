@@ -141,7 +141,7 @@ var
 implementation
 
 uses
-  communit, frmopendw, CLSexcel;
+  communit, frmopendw, CLSexcel, Udebug;
 
 {$R *.dfm}
 

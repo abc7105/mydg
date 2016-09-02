@@ -217,7 +217,8 @@ object AddInModule: TAddInModule
           #31185#30446#20313#39069#34920#29983#25104#23457#35745#24213#31295'   copyright(c) 2014 '#20013#21220#19975#20449' '#21525#21521#38451'   Email:179930269@QQ.CO' +
           'M'
         ControlTypes = {
-          070000000F0000000F0000000F000000070000000F0000000F0000000F000000}
+          080000000F0000000F0000000F000000070000000F0000000F0000000F000000
+          0F000000}
         Controls_ = <
           item
             Glyph.Data = {
@@ -4125,6 +4126,35 @@ object AddInModule: TAddInModule
                 OnClick = prevPZ
                 Caption = #23548#20837#20973#35777#21450#25277#20973#28436#31034
               end>
+          end
+          item
+            Id = 'adxRibbonMenu018FF0A932074841BE9A830E1C5F26AB'
+            Ribbons = [msrExcelWorkbook]
+            Size = csLarge
+            Caption = #32929#31080#36164#26009#13#10
+            ControlTypes = {0400000007000000070000000700000007000000}
+            Controls_ = <
+              item
+                Id = 'adxRibbonButtonD6D84D1F78784A9BA62119CB7D0DC837'
+                Ribbons = [msrExcelWorkbook]
+                Caption = #19979#36733#32929#31080#36164#26009
+              end
+              item
+                Id = 'adxRibbonButtonA89D416BEDDF48E2B3FD4F119BC5626C'
+                Ribbons = [msrExcelWorkbook]
+                OnClick = adxRibbonTab1Controls0Controls7Controls1Click
+                Caption = #23548#20837#32929#31080#36164#26009#13#10
+              end
+              item
+                Id = 'adxRibbonButton886AEF5A664E417289442F797C49340A'
+                Ribbons = [msrExcelWorkbook]
+                Caption = #26597#35810#32929#31080#36164#26009
+              end
+              item
+                Id = 'adxRibbonButton48C88F3E27944659BC8F50D1304F9134'
+                Ribbons = [msrExcelWorkbook]
+                Caption = #35786#26029#20449#24687
+              end>
           end>
       end
       item
@@ -6293,32 +6323,32 @@ object AddInModule: TAddInModule
                 Id = 'adxRibbonButtonFBA4861D01E047FCAF13AC3D44FBBD22'
                 Ribbons = [msrExcelWorkbook]
                 OnClick = adxRibbonTab1Controls0Controls6Controls1Click
-                Caption = '    '#22635#20889#38134#34892#20989#35777#20449#24687
+                Caption = '    '#22635#20889#38134#34892#20989#35777#25968#25454
               end
               item
                 Id = 'adxRibbonButtonA93FBC9FE5C8453FADAA40717A6F30A7'
                 Ribbons = [msrExcelWorkbook]
                 OnClick = adxRibbonTab1Controls0Controls6Controls2Click
-                Caption = '    '#22635#20889#20225#19994#35810#35777#20989
+                Caption = '    '#22635#20889#20225#19994#35810#35777#20989#25968#25454
               end
               item
                 Id = 'adxRibbonButton3946F6A7CE054147B24885DADDD921FB'
                 Ribbons = [msrExcelWorkbook]
                 OnClick = adxRibbonTab1Controls2Controls2Controls3Click
-                Caption = '    '#22635#20889#20132#26131#35810#35777#20989
+                Caption = '    '#22635#20889#20132#26131#35810#35777#20989#25968#25454
               end
               item
                 Id = 'adxRibbonButton7FE04DB4B61B4430B1F5B54DC8FBC0A2'
                 Ribbons = [msrExcelWorkbook]
                 OnClick = adxRibbonTab1Controls0Controls6Controls4Click
-                Caption = '    '#22635#20889#20449#23553
+                Caption = '    '#22635#20889#20449#23553#20449#24687
               end
               item
                 Tag = 20
                 Id = 'adxRibbonButtonDC904467A6EA4807BC0D7FEAA547E000'
                 Ribbons = [msrExcelWorkbook]
                 OnClick = adxRibbonTab1Controls0Controls6Controls5Click
-                Caption = #29983#25104#30456#20851#20989#35777#25110#20449#23553
+                Caption = #20989#35777#31532#20108#27493'  '#29983#25104'WORD'#20989#35777#25991#26723
               end>
           end>
       end
@@ -9034,7 +9064,7 @@ object AddInModule: TAddInModule
       end>
     Id = 'adxRibbonTabB1CD96D1E87545D5AAEDB56B9CA061F0'
     Ribbons = [msrExcelWorkbook]
-    Left = 192
-    Top = 32
+    Left = 185
+    Top = 34
   end
 end

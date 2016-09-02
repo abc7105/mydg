@@ -118,6 +118,9 @@ type
       Sender: TObject; const RibbonControl: IRibbonControl);
     procedure adxRibbonTab1Controls0Controls2Controls2Click(
       Sender: TObject; const RibbonControl: IRibbonControl);
+    procedure adxRibbonTab1Controls0Controls7Controls1Click(Sender: TObject;
+      const
+      RibbonControl: IRibbonControl);
     procedure adxRibbonTab1Controls1Controls5Controls0Click(
       Sender: TObject; const RibbonControl: IRibbonControl);
     procedure adxRibbonTab1Controls1Controls5Controls1Click(
@@ -139,7 +142,7 @@ implementation
 
 uses
   frminfo, untselectdg, reg, fmnewdw, frmopendw,
-  frm_manysheet, u_xzh, frmcash, jm, CLSexcel;
+  frm_manysheet, u_xzh, frmcash, jm, CLSexcel, GPIMPORT, Udebug;
 
 {$R *.dfm}
 
@@ -156,37 +159,35 @@ begin
   axm.dwmc := '';
   axm.mbid := '';
   axm.MBNAME := '';
+  adxmydgs := Self;
 
   mainpath := COMAddInClassFactory.FilePath;
-  ;
-
   //  filename := mainpath + 'dg.mdb';
 
-  //    ausername, apassword, filename: string;
-  //  ausername := 'admin';
-  //  apassword := '';
-  //  mainmdb.DataModule3.conmain.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0;' +
-  //    'User ID=' + AUserName + ';' +
-  //    'Jet OLEDB:Database Password=' + APassword + ';' +
-  //    'Data Source=' + filename + ';' +
-  //    'Mode=ReadWrite;' +
-  //    'Extended Properties="";';
-  //  mainmdb.DataModule3.conmain.Connected := true;
-  //  ExcelApp.DisplayAlerts[adxLCID] := false;
+ //    ausername, apassword, filename: string;
+ //  ausername := 'admin';
+ //  apassword := '';
+ //  mainmdb.DataModule3.conmain.ConnectionString := 'Provider=Microsoft.Jet.OLEDB.4.0;' +
+ //    'User ID=' + AUserName + ';' +
+ //    'Jet OLEDB:Database Password=' + APassword + ';' +
+ //    'Data Source=' + filename + ';' +
+ //    'Mode=ReadWrite;' +
+ //    'Extended Properties="";';
+ //  mainmdb.DataModule3.conmain.Connected := true;
+ //  ExcelApp.DisplayAlerts[adxLCID] := false;
 
-  adxmydgs := Self;
-  //
-    // mainpath := mainpath;
-     //  if StrToFloat(excelver) > 11 then
-     //  begin
-     //    adxCommandBar1.Visible := FALSE;
-     //    adxRibbonTab1.Visible := FALSE;
-     //  end
-     //  else
-     //  begin
-     //    adxCommandBar1.Visible := FALSE;
-     //    adxRibbonTab1.Visible := False;
-     //  end;
+ //
+   // mainpath := mainpath;
+    //  if StrToFloat(excelver) > 11 then
+    //  begin
+    //    adxCommandBar1.Visible := FALSE;
+    //    adxRibbonTab1.Visible := FALSE;
+    //  end
+    //  else
+    //  begin
+    //    adxCommandBar1.Visible := FALSE;
+    //    adxRibbonTab1.Visible := False;
+    //  end;
 
 end;
 
@@ -862,7 +863,7 @@ begin
       EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam,
       EmptyParam, EmptyParam, EmptyParam, adxLCID
       );
-    mymessage('按表头规定的内容填写列表，然后在菜单中选【第二步 列表生成相应的函证或信封】来生成WORD版的函证！');
+    mymessage('按表头规定的内容填写列表，然后在菜单中选【函证第二步 生成WORD函证文件】来生成WORD版的函证！');
   end;
 end;
 
@@ -874,7 +875,7 @@ begin
     EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam,
     EmptyParam, EmptyParam, EmptyParam, adxLCID
     );
-  mymessage('按表头规定的内容填写列表，然后在菜单中选【第二步 列表生成相应的函证或信封】来生成WORD版的函证！');
+  mymessage('按表头规定的内容填写列表，然后在菜单中选【函证第二步 生成WORD函证文件】来生成WORD版的函证！');
 end;
 
 procedure TAddInModule.adxRibbonTab1Controls0Controls6Controls4Click(
@@ -885,7 +886,7 @@ begin
     EmptyParam, EmptyParam, EmptyParam, EmptyParam, EmptyParam,
     EmptyParam, EmptyParam, EmptyParam, adxLCID
     );
-  mymessage('按表头规定的内容填写列表，然后在菜单中选【第二步 列表生成相应的函证或信封】来生成WORD版的函证！');
+  mymessage('按表头规定的内容填写列表，然后在菜单中选【函证第二步 生成WORD函证文件】来生成WORD版的函证！');
 end;
 
 procedure TAddInModule.adxRibbonTab1Controls0Controls6Controls5Click(
@@ -960,7 +961,6 @@ begin
     aform := nil;
   end;
 end;
-
 
 function TAddInModule.procopendw(): boolean;
 var
@@ -1189,6 +1189,18 @@ begin
 
 end;
 
+procedure TAddInModule.adxRibbonTab1Controls0Controls7Controls1Click(Sender:
+  TObject; const RibbonControl: IRibbonControl);
+var
+  agpimport: tgpimport;
+begin
+  // mainpath := COMAddInClassFactory.FilePath;
+  agpimport := tgpimport.create(ExcelApp.Application);
+  agpimport.downloadALL;
+
+  //
+end;
+
 procedure TAddInModule.adxRibbonTab1Controls1Controls5Controls0Click(
   Sender: TObject; const RibbonControl: IRibbonControl);
 begin
@@ -1245,3 +1257,4 @@ initialization
   TadxFactory.Create(ComServer, Tmydgs, CLASS_mydgs, TAddInModule);
 
 end.
+

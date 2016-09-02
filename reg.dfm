@@ -1,6 +1,6 @@
 object fmreg: Tfmreg
-  Left = 609
-  Top = 234
+  Left = 211
+  Top = 238
   VertScrollBar.Style = ssFlat
   BorderIcons = []
   BorderStyle = bsSingle
