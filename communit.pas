@@ -84,6 +84,7 @@ var
   OLDSHEETNAME: string;
   taskpanelISOpen: boolean;
   conMAIN: TADOConnection;
+  mainpath: string;
 
 implementation
 

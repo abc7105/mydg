@@ -34,6 +34,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
+    procedure lbl4DblClick(Sender: TObject);
 
   private
     { Private declarations }
@@ -51,7 +52,7 @@ var
 implementation
 
 uses
-  jm,  communit, Udebug;
+  jm, communit;
 
 {$R *.dfm}
 
@@ -85,6 +86,11 @@ end;
 procedure Tfmreg.disperr(bok: Boolean);
 begin
   lblerr.Visible := not bok;
+end;
+
+procedure Tfmreg.lbl4DblClick(Sender: TObject);
+begin
+  edt1.Text := ajm.FIRSTSN;
 end;
 
 end.

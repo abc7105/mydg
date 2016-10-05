@@ -1,0 +1,148 @@
+object fmkmtocash: Tfmkmtocash
+  Left = 181
+  Top = 121
+  Width = 1038
+  Height = 625
+  Caption = 'fmkmtocash'
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poDesktopCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Splitter1: TSplitter
+    Left = 674
+    Top = 68
+    Width = 20
+    Height = 519
+  end
+  object ejunkmlist: TEjunDBGrid
+    Left = 0
+    Top = 68
+    Width = 674
+    Height = 519
+    OptionsEx = [goxStringGrid, goxSupportFormula, goxAutoCalculate]
+    DefaultColWidth = 73
+    Selection.AlphaBlend = False
+    Selection.TransparentColor = False
+    Selection.DisableDrag = False
+    Selection.HideBorder = False
+    Align = alLeft
+    FooterRowCount = 0
+    DataSet = tbkmlist
+    DataColumns = <
+      item
+        Width = 73
+        Style.BgColor = clWindow
+        Style.HorzAlign = haGeneral
+        Style.VertAlign = vaCenter
+        Style.Options = []
+        Visible = True
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        UseColumnFont = False
+      end>
+    TabOrder = 0
+    TabStop = True
+    PopupMenu = ejunkmlist.DefaultPopupMenu
+    GridData = {
+      090810000006050000000000000000000000000031004800F5FFFFFF00000100
+      4D0053002000530061006E007300200053006500720069006600000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      E0004C0000000000FFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1F
+      FFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1F00000000000000000000000100000000
+      00000000050000FF080000FF00000000E0004C0000000000FFFFFF1FFFFFFF1F
+      FFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1F
+      0000000000000000000000010000000000000000050000FF080000FF00000014
+      850017000000000000000845006A0075006E0047007200690064001E04040000
+      0000000A000000090810000007100000000000000000000000000000020E0001
+      0000000400000001000400000005203100666666666666294066666666666629
+      4066666666666629406666666666662940666666666666294066666666666629
+      40000A2031000101000000FFFFFFFF01000000FFFFFFFF000000000000000000
+      000000000000000000000000000000000000000000000009202A000900640001
+      000000000000000200080000000000000035403333333333B33D400000000000
+      00000008007D000C000000000058020000000000007D000C0001000100470401
+      000000000008021400000000000500FF000000000080010000FFFF0000E50002
+      0000000A00000000000000}
+  end
+  object ejuncashlist: TEjunDBGrid
+    Left = 694
+    Top = 68
+    Width = 328
+    Height = 519
+    OptionsEx = [goxStringGrid, goxSupportFormula, goxAutoCalculate]
+    DefaultColWidth = 73
+    Selection.AlphaBlend = False
+    Selection.TransparentColor = False
+    Selection.DisableDrag = False
+    Selection.HideBorder = False
+    Align = alClient
+    FooterRowCount = 0
+    DataColumns = <>
+    TabOrder = 1
+    TabStop = True
+    PopupMenu = ejuncashlist.DefaultPopupMenu
+    OnDblClick = ejuncashlistDblClick
+    GridData = {
+      090810000006050000000000000000000000000031004800F5FFFFFF00000100
+      4D0053002000530061006E007300200053006500720069006600000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      E0004C0000000000FFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1F
+      FFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1F00000000000000000000000100000000
+      00000000050000FF080000FF00000000850017000000000000000845006A0075
+      006E0047007200690064001E040400000000000A000000090810000007100000
+      000000000000000000000000020E000100000004000000010004000000052031
+      0066666666666629406666666666662940666666666666294066666666666629
+      4066666666666629406666666666662940000A2031000101000000FFFFFFFF01
+      000000FFFFFFFF00000000000000000000000000000000000000000000000000
+      0000000000000009202A00090064000100000000000000020008000000000000
+      0035403333333333B33D40000000000000000008007D000C0000000000580200
+      000000000008021400000000000500FF000000000080010000FFFF0000E50002
+      0000000A00000000000000}
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 1022
+    Height = 68
+    Align = alTop
+    TabOrder = 2
+    object Button1: TButton
+      Left = 827
+      Top = 17
+      Width = 81
+      Height = 35
+      Caption = #30830#35748
+      TabOrder = 0
+      OnClick = Button1Click
+    end
+  end
+  object tbkmlist: TADOTable
+    Left = 378
+    Top = 414
+  end
+  object qrycashlist: TADOQuery
+    Parameters = <>
+    Left = 749
+    Top = 382
+  end
+  object qrytmp: TADOQuery
+    Parameters = <>
+    Left = 438
+    Top = 210
+  end
+  object EjunLicense1: TEjunLicense
+    KeyID = 'y7ERk-Tyquk-RTV1G9Gh-fGdp'
+    ProductID = 'B201008101065'
+    UserID = #21525#21521#38451
+    Left = 847
+    Top = 350
+  end
+end

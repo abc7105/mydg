@@ -65,7 +65,7 @@ object fmreg: Tfmreg
     ParentFont = False
   end
   object lbl4: TLabel
-    Left = 56
+    Left = 55
     Top = 284
     Width = 73
     Height = 20
@@ -77,6 +77,7 @@ object fmreg: Tfmreg
     Font.Name = 'MS Sans Serif'
     Font.Style = []
     ParentFont = False
+    OnDblClick = lbl4DblClick
   end
   object lbl5: TLabel
     Left = 32

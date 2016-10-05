@@ -21,7 +21,11 @@ uses
   reg in 'reg.pas' {fmreg},
   communit in 'communit.pas',
   mydg_IMPL in 'mydg_IMPL.pas' {AddInModule: TadxCOMAddInModule},
-  Udebug in 'Udebug.pas';
+  Udebug in 'Udebug.pas',
+  GPIMPORT in 'GPIMPORT.pas',
+  UHASH in '..\lxyshare\UHASH.pas',
+  UTPROGRESS in '..\lxyshare\UTPROGRESS.pas',
+  frmkmtocash in 'frmkmtocash.pas' {fmkmtocash};
 
 exports
   DllGetClassObject,

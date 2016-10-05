@@ -1106,8 +1106,7 @@ begin
 
   try
     aform := tfmcash.Create(nil);
-    ////   LoadParamFromFile(mainpath + 'sys.ini');
-   //    aform.xmid := axm.xmid;
+    aform.excelapp:=excelapp.Parent;
     aform.showmodal;
   finally
   end;

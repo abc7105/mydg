@@ -38,11 +38,6 @@ type
 
   end;
 
-type
-  lxydate = class
-
-  end;
-
 implementation
 
 { lxyexcel }
@@ -95,7 +90,7 @@ begin
 
     if VarIsNumeric(acol[kk, 1]) then
       acol[kk, 1] := str8todate(IntToStr(acol[kk, 1]))
-    else if VarIsStr(acol[kk,1]) then
+    else if VarIsStr(acol[kk, 1]) then
       acol[kk, 1] := str8todate(acol[kk, 1]);
     kk := kk + 1;
   end;
@@ -446,6 +441,63 @@ begin
   result := True;
 
 end;
+
+procedure fillzero(asheet: Variant; ncolumn: integer);
+var
+  i, ncount: integer;
+  acol: Variant;
+begin
+  //
+  ncount := asheet.usedrange.rows.count;
+
+  acol := asheet.Range[asheet.cells.Item[2, ncolumn],
+    asheet.cells.Item[ncount, ncolumn]].Value;
+
+  for i := 1 to ncount - 1 do
+  begin
+    try
+      if VarIsNull(acol[i, 1]) then
+        acol[i, 1] := 0
+      else if VarIsEmpty(acol[i, 1]) then
+        acol[i, 1] := 0
+      else if VarIsStr(acol[i, 1]) then
+        if (acol[i, 1] = '-') or (Trim(acol[i, 1]) = '') then
+          acol[i, 1] := 0;
+
+    except
+    end;
+  end;
+  asheet.Range[asheet.cells.Item[2, ncolumn],
+    asheet.cells.Item[ncount, ncolumn]].Value := acol;
+
+end;
+
+//function lxyexcel.filldate(asheet: Variant; ncolumn: integer): boolean;
+//var
+//  kk, ncount: integer;
+//  acol: Variant;
+//begin
+//  //
+//  result := False;
+//  ncount := asheet.usedrange.rows.count;
+//
+//  acol := asheet.Range[asheet.cells.Item[2, ncolumn],
+//    asheet.cells.Item[ncount, ncolumn]].value;
+//
+//  kk := 1;
+//  while kk <= ncount - 1 do
+//  begin
+//
+//    if VarIsNumeric(acol[kk, 1]) then
+//      acol[kk, 1] := str8todate(IntToStr(acol[kk, 1]))
+//    else if VarIsStr(acol[kk, 1]) then
+//      acol[kk, 1] := str8todate(acol[kk, 1]);
+//    kk := kk + 1;
+//  end;
+//  asheet.Range[asheet.cells.Item[2, ncolumn],
+//    asheet.cells.Item[ncount, ncolumn]].Value := acol;
+//  result := True;
+//end;
 
 { lxydate }
 

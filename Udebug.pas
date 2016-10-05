@@ -39,7 +39,7 @@ begin
     DeleteFile(FileName); {看文件是否存在,在就刪除}
   AssignFile(F, FileName); {将文件名与变量 F 关联}
   ReWrite(F); {创建一个新的文件并命名为 ek.txt}
-  Writeln(F, 'test:');
+  Writeln(F, ' ');
   Closefile(F); {关闭文件 F}
 end;
 
