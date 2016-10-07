@@ -1,8 +1,8 @@
 object fmcash: Tfmcash
-  Left = 688
-  Top = 307
+  Left = 731
+  Top = 263
   Width = 1032
-  Height = 566
+  Height = 565
   Caption = 'fmcash'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -25,7 +25,7 @@ object fmcash: Tfmcash
     Align = alTop
     TabOrder = 0
     object btn4: TButton
-      Left = 182
+      Left = 785
       Top = 6
       Width = 115
       Height = 33
@@ -40,23 +40,42 @@ object fmcash: Tfmcash
       Height = 25
       Caption = 'btn5'
       TabOrder = 1
+      Visible = False
       OnClick = btn5Click
     end
     object Button1: TButton
-      Left = 34
-      Top = 6
+      Left = 16
+      Top = 10
       Width = 137
       Height = 33
-      Caption = #29983#25104#29616#37329#27969#37327#34920
+      Caption = #21021#22987#21270#35760#36134#20973#35777
       TabOrder = 2
       OnClick = Button1Click
+    end
+    object Button2: TButton
+      Left = 344
+      Top = 7
+      Width = 125
+      Height = 32
+      Caption = #29983#25104#29616#37329#27969#37327#34920
+      TabOrder = 3
+      OnClick = Button2Click
+    end
+    object Button3: TButton
+      Left = 165
+      Top = 7
+      Width = 137
+      Height = 36
+      Caption = #29616#37329#27969#37327#20998#26512
+      TabOrder = 4
+      OnClick = Button3Click
     end
   end
   object pnl2: TPanel
     Left = 0
     Top = 49
     Width = 1016
-    Height = 479
+    Height = 478
     Align = alClient
     Caption = 'pnl2'
     TabOrder = 1
@@ -65,7 +84,7 @@ object fmcash: Tfmcash
     Left = 0
     Top = 49
     Width = 1016
-    Height = 479
+    Height = 478
     ActivePage = tsbank
     Align = alClient
     TabOrder = 2
@@ -76,22 +95,24 @@ object fmcash: Tfmcash
         Left = 0
         Top = 0
         Width = 1008
-        Height = 451
+        Height = 450
         Align = alClient
         TabOrder = 0
         object spl2: TSplitter
           Left = 1
-          Top = 248
+          Top = 247
           Width = 1006
           Height = 16
           Cursor = crVSplit
           Align = alBottom
+          Color = clSilver
+          ParentColor = False
         end
         object pnl6: TPanel
           Left = 1
           Top = 1
           Width = 1006
-          Height = 247
+          Height = 246
           Align = alClient
           Caption = 'pnl6'
           TabOrder = 0
@@ -99,7 +120,7 @@ object fmcash: Tfmcash
             Left = 1
             Top = 1
             Width = 1004
-            Height = 245
+            Height = 244
             OptionsEx = [goxStringGrid, goxSupportFormula, goxAutoCalculate]
             DefaultColWidth = 73
             Selection.AlphaBlend = False
@@ -153,7 +174,7 @@ object fmcash: Tfmcash
         end
         object pnl7: TPanel
           Left = 1
-          Top = 264
+          Top = 263
           Width = 1006
           Height = 186
           Align = alBottom
@@ -192,6 +213,7 @@ object fmcash: Tfmcash
             TabOrder = 0
             TabStop = True
             PopupMenu = ejunpzall.DefaultPopupMenu
+            OnCellGetColor = ejunpzoneCellGetColor
             OnMouseDown = ejunpzoneMouseDown
             GridData = {
               090810000006050000000000000000000000000031004800F5FFFFFF00000100
@@ -224,15 +246,17 @@ object fmcash: Tfmcash
         Top = 0
         Width = 1008
         Height = 451
+        Options = [goRangeSelect, goRowSelect, goRowSizing, goColSizing, goUnequalRowHeight, goFixedRowShowNo, goFixedColShowNo, goAlwaysShowSelection]
         OptionsEx = [goxStringGrid, goxSupportFormula, goxAutoCalculate]
         DefaultColWidth = 73
         Selection.AlphaBlend = False
         Selection.TransparentColor = False
         Selection.DisableDrag = False
         Selection.HideBorder = False
+        AllowEdit = False
         Align = alClient
         FooterRowCount = 0
-        DataSet = tbCASHSHEET
+        DataSet = qryCASHSHEET
         DataColumns = <
           item
             Width = 73
@@ -251,8 +275,8 @@ object fmcash: Tfmcash
         TabOrder = 0
         TabStop = True
         PopupMenu = ejunpzall.DefaultPopupMenu
-        OnDblClick = ejunpzallDblClick
-        OnCellGetColor = ejunpzallCellGetColor
+        OnDblClick = ejuncashsheetDblClick
+        OnCellGetColor = ejuncashsheetCellGetColor
         OnMouseDown = ejunpzallMouseDown
         GridData = {
           090810000006050000000000000000000000000031004800F5FFFFFF00000100
@@ -338,8 +362,8 @@ object fmcash: Tfmcash
   object qrypzb: TADOQuery
     Connection = con1
     Parameters = <>
-    Left = 914
-    Top = 304
+    Left = 408
+    Top = 309
   end
   object ejnlcns1: TEjunLicense
     KeyID = 'y7ERk-Tyquk-RTV1G9Gh-fGdp'
@@ -357,26 +381,14 @@ object fmcash: Tfmcash
   object qryQRYonepz: TADOQuery
     Connection = con1
     Parameters = <>
-    Left = 938
-    Top = 209
+    Left = 425
+    Top = 411
   end
   object qrycash: TADOQuery
     Connection = con1
     Parameters = <>
-    Left = 771
-    Top = 349
-  end
-  object qrybank: TADOQuery
-    Connection = con1
-    Parameters = <>
-    Left = 572
-    Top = 300
-  end
-  object tbCASHSHEET: TADOTable
-    Connection = con1
-    TableName = #29616#37329#27969#37327#34920#39033#30446
-    Left = 347
-    Top = 154
+    Left = 621
+    Top = 412
   end
   object qrykmyeb: TADOQuery
     Connection = con1
@@ -391,5 +403,10 @@ object fmcash: Tfmcash
   object dlgSave1: TSaveDialog
     Left = 884
     Top = 468
+  end
+  object qryCASHSHEET: TADOTable
+    Connection = con1
+    Left = 347
+    Top = 154
   end
 end

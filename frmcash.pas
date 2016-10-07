@@ -5,8 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, ComCtrls, ZcUniClass, ZJGrid, ZcDataGrid, ZcDBGrids,
-  ushare, ShellAPI, EXCEL2000,
-  DB, ADODB, ZcGridClasses, StdCtrls, frmkmtocash;
+  ushare, ShellAPI, EXCEL2000, DB, ADODB, ZcGridClasses, StdCtrls, frmkmtocash;
+
 const
   ALLREC = 500;
 
@@ -40,8 +40,6 @@ type
     spl2: TSplitter;
     qryQRYonepz: TADOQuery;
     qrycash: TADOQuery;
-    qrybank: TADOQuery;
-    tbCASHSHEET: TADOTable;
     qrykmyeb: TADOQuery;
     btn4: TButton;
     btn5: TButton;
@@ -51,31 +49,32 @@ type
     Button1: TButton;
     dlgSave1: TSaveDialog;
     ejuncashsheet: TEjunDBGrid;
+    qryCASHSHEET: TADOTable;
+    Button2: TButton;
+    Button3: TButton;
     procedure openpzsheet();
-    procedure opencashtotal();
     procedure FormShow(Sender: TObject);
-    procedure ejunpzallMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+    procedure ejunpzallMouseDown(Sender: TObject; Button: TMouseButton; Shift:
+      TShiftState; X, Y: Integer);
     procedure ejunpzallDblClick(Sender: TObject);
     procedure openpzone();
     procedure qrypzbAfterScroll(DataSet: TDataSet);
-    procedure ejunbankDblClick(Sender: TObject);
     procedure formatcash();
-    procedure ejun1DblClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure ejunpzallCellGetColor(Sender: TObject; ACoord: TPoint;
-      var AColor: TColor);
+    procedure ejunpzallCellGetColor(Sender: TObject; ACoord: TPoint; var AColor:
+      TColor);
     procedure OPENCASHSHEET();
     procedure btnupdatesheetClick(Sender: TObject);
     procedure pgc1Change(Sender: TObject);
     procedure openkmyeb();
     procedure ejunkmyebDblClick(Sender: TObject);
-    procedure ejunpzoneMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+    procedure ejunpzoneMouseDown(Sender: TObject; Button: TMouseButton; Shift:
+      TShiftState; X, Y: Integer);
     procedure btn4Click(Sender: TObject);
     procedure btn5Click(Sender: TObject);
-    procedure ListBox1DblClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
     procedure calcfit();
     procedure lookforother();
     procedure lookfordf(je: double; const sxh: integer);
@@ -83,24 +82,36 @@ type
     procedure cleararr;
     procedure UPDATRARR;
     procedure dofx();
+    procedure ejuncashsheetCellGetColor(Sender: TObject; ACoord: TPoint; var
+      AColor: TColor);
+    procedure ejuncashsheetDblClick(Sender: TObject);
+    procedure ejunpzoneCellGetColor(Sender: TObject; ACoord: TPoint; var AColor:
+      TColor);
     function tableexists(con: TADOConnection; tablename: string): boolean;
   private
     fxmid: string;
     Fexcelapp: VARIANT;
-    procedure cashfx_export_toexcel;
     procedure cashfx_other_ok;
     procedure cashFX_pzb_reset;
     procedure cashfx_tableLOOP;
+    procedure cashpzb_add_blankline;
     procedure cashpzb_display_to_ejungird;
     procedure cash_complete_ok_;
     procedure create_cashview_table;
+    procedure eachcashxm_mx_pzb;
+    procedure ejunpzb_refresh(PZBsqlstr: string);
+    procedure ejunpzb_toexcel;
     procedure mark_XJPZ;
+    procedure opencashcalcsheet;
+    procedure open_ejuncashsheet;
     procedure updatePZB_from_cashview;
+    procedure xjjesum;
+    procedure xjsum();
+    function firstlevel_length: integer;
 
     { Private declarations }
   public
   published
-
     property excelapp: VARIANT read Fexcelapp write Fexcelapp;
     { Public declarations }
  // published
@@ -141,15 +152,10 @@ begin
   qrytmp.Connection := con1;
   qryQRYonepz.Connection := con1;
   qrypzb.Connection := con1;
-  qrybank.Connection := con1;
   qrykmyeb.connection := con1;
-
-  tbcashsheet.close;
-  tbcashsheet.Connection := con1;
-  tbcashsheet.TableName := '现金流量表项目';
+  qrycashsheet.Connection := con1;
 
 end;
-//================打开
 
 procedure Tfmcash.openpzsheet;
 var
@@ -196,8 +202,6 @@ begin
   qrypzb.open;
   qrypzb.First;
 
-  showint(qrypzb.RecordCount);
-
   for I := 0 to qrypzb.Fields.Count - 1 do
   begin
     if (qrypzb.Fields[i].Name <> '现金流量') and (qrypzb.Fields[i].Name <>
@@ -206,20 +210,23 @@ begin
   end;
 
   ejunpzall.DataSet := qrypzb;
-
   ejunpzall.Activate(true);
 
 end;
 
 procedure Tfmcash.FormShow(Sender: TObject);
+var
+  STEXT: string;
 begin
 
   fxmid := axm.xmid;
-
   formatcash;
-  openpzsheet;
+
+  STEXT := 'select * from 凭证表  where  (fitnum<>"" ) and xjpz=true  ' +
+    'order by 全凭证号,fitnum';
+  ejunpzb_refresh(stext);
+  open_ejuncashsheet;
   openpzone;
-  opencashtotal;
   openkmyeb;
 
   pgc1.ActivePageIndex := 0;
@@ -236,24 +243,23 @@ var
   ICOL: LongInt;
 begin
   //
-
-  if ejunPZALL.tag <= 17 then
-  begin
-    icol := ejunPZALL.CurCol;
-    if ejunPZALL.Columns[icol].Tag = 'Z' then
-    begin
-      ejunPZALL.SortRow(icol, true);
-      ejunPZALL.Columns[icol].Tag := 'A'
-    end
-    else
-    begin
-      ejunPZALL.SortRow(icol, false);
-      ejunPZALL.Columns[icol].Tag := 'Z'
-    end;
-    Exit;
-    //    end;
-  end;
-
+//
+//  if ejunPZALL.tag <= 17 then
+//  begin
+//    icol := ejunPZALL.CurCol;
+//    if ejunPZALL.Columns[icol].Tag = 'Z' then
+//    begin
+//      ejunPZALL.SortRow(icol, true);
+//      ejunPZALL.Columns[icol].Tag := 'A'
+//    end
+//    else
+//    begin
+//      ejunPZALL.SortRow(icol, false);
+//      ejunPZALL.Columns[icol].Tag := 'Z'
+//    end;
+//    Exit;
+//  end;
+//
   openpzone;
 
 end;
@@ -263,15 +269,14 @@ var
   STRLIST: tstringlist;
   stext: string;
   i: Integer;
-
 begin
 
   stext :=
-    '全凭证号,一级名称,科目编码, 科目名称, 摘要, 借方, 贷方,fitnum ,现金流量,经营其他, 对方科目,判断依据,id,现金否';
+    '全凭证号,科目编码,一级名称, 科目名称,现金流量,经营其他,  借方, 贷方,fitnum ,摘要, id,现金否';
   STRLIST := tstringlist.create();
   STRLIST.Delimiter := ',';
   STRLIST.DelimitedText := stext;
-
+  ejunpzone.ClearAll;
   for i := 1 to strlist.Count do
   begin
     if I >= ejunpzone.DataColumns.Count - 1 then
@@ -280,86 +285,42 @@ begin
     ejunpzone.DATAColumns.Items[I - 1].Title := STRLIST[I - 1];
   end;
 
-  ejunpzone.Columns[1].Width := 120;
-  ejunpzone.Columns[2].Width := 50;
-  ejunpzone.Columns[3].Width := 50;
-  ejunpzone.Columns[4].Width := 50;
-  ejunpzone.Columns[5].Width := 200;
+  ejunpzone.Columns[1].Width := 100;
+  ejunpzone.Columns[2].Width := 90;
+  ejunpzone.Columns[3].Width := 90;
+  ejunpzone.Columns[4].Width := 90;
+  ejunpzone.Columns[5].Width := 160;
   ejunpzone.Columns[6].Width := 100;
-  ejunpzone.Columns[7].Width := 100;
-  ejunpzone.Columns[8].Width := 70;
-  ejunpzone.Columns[9].Width := 70;
-  ejunpzone.Columns[10].Width := 90;
+  ejunpzone.Columns[7].Width := 90;
+  ejunpzone.Columns[8].Width := 90;
+  ejunpzone.Columns[9].Width := 50;
+  ejunpzone.Columns[10].Width := 180;
+  ejunpzone.Columns[11].Visible := False;
+  ejunpzone.Columns[12].Visible := False;
+  ejunpzone.Columns[13].Visible := False;
 
-  ejunpzone.DataColumns.Items[7].Style.FormatString := '#,##0.00';
   ejunpzone.DataColumns.Items[6].Style.FormatString := '#,##0.00';
+  ejunpzone.DataColumns.Items[7].Style.FormatString := '#,##0.00';
 
   qryQRYonepz.Close;
   qryQRYonepz.SQL.Clear;
   qryQRYonepz.sql.Add('select * from 凭证表  where (xmid=''' +
-    trim(qrypzb.fieldbyname('xmid').asstring) +
-    ''')  and trim(全凭证号) ='''
-    + trim(qrypzb.fieldbyname('全凭证号').asstring) + '''');
+    trim(qrypzb.fieldbyname('xmid').asstring) + ''')  and trim(全凭证号) =''' +
+    trim(qrypzb.fieldbyname('全凭证号').asstring) + '''');
   qryQRYonepz.open;
   qryQRYonepz.First;
+
+  if qryQRYonepz.RecordCount > 6 then
+    pnl7.Height := 350
+  else
+    pnl7.Height := 180;
+
   ejunpzone.Activate(true);
 end;
 
 procedure Tfmcash.qrypzbAfterScroll(DataSet: TDataSet);
 begin
   openpzone;
-end;
-
-procedure Tfmcash.opencashtotal;
-var
-  STRLIST: tstringlist;
-  stext: string;
-  i: Integer;
-begin
-
-  //  stext :=
-  //    '现金流量, 借方 ,贷方';
-  //  STRLIST := tstringlist.create();
-  //  STRLIST.Delimiter := ',';
-  //  STRLIST.DelimitedText := stext;
-  //
-  //  for i := 1 to strlist.Count do
-  //  begin
-  //    if I >= ejuncashtotal.DataColumns.Count - 1 then
-  //      ejuncashtotal.DataColumns.Add;
-  //    ejuncashtotal.DATAColumns.Items[i - 1].FieldName := strlist[i - 1];
-  //    ejuncashtotal.DATAColumns.Items[I - 1].Title := STRLIST[I - 1];
-  //  end;
-  //
-  //  ejuncashtotal.Columns[1].Width := 90;
-  //  ejuncashtotal.Columns[2].Width := 80;
-  //  ejuncashtotal.Columns[3].Width := 80;
-  //  ejuncashtotal.Columns[4].Width := 0;
-  //
-  //  ejuncashtotal.DataColumns.Items[1].Style.FormatString := '#,##0.00';
-  //  ejuncashtotal.DataColumns.Items[3].Style.FormatString := '#,##0.00';
-  //  ejuncashtotal.DataColumns.Items[2].Style.FormatString := '#,##0.00';
-  //
-  //  qrycash.Close;
-  //  qrycash.SQL.Clear;
-  //  qrycash.sql.Add('select max(现金流量) as 现金流量,SUM(借方) as 借方 ,SUM(贷方) as 贷方');
-  //  qrycash.sql.Add(' from 凭证表    where (xmid=''' + trim(fxmid) +
-  //    ''')  and 现金否');
-  //  qrycash.sql.Add(' group by 现金流量 ');
-  //  qrycash.open;
-  //  qrycash.first;
-
-end;
-
-procedure Tfmcash.ejunbankDblClick(Sender: TObject);
-begin
-  qrypzb.Close;
-  qrypzb.SQL.Clear;
-  qrypzb.sql.Add('select * from 凭证表  where (xmid=''' + fxmid +
-    ''')  and trim(全凭证号) = '''
-    + trim(qrybank.fieldbyname('凭证号').asstring) + '''  ');
-  qrypzb.open;
-  qrypzb.First;
 end;
 
 procedure Tfmcash.formatcash;
@@ -383,29 +344,13 @@ begin
     ''' and 一级编码="1002"');
   qrypzb.ExecSQL;
 
-  //  qrypzb.Close;
-  //  qrypzb.SQL.Clear;
-  //  qrypzb.sql.Add('update  凭证表  set 现金否=true  where xmid=''' + fxmid +
-  //    ''' and 一级编码="1003"');
-  //  qrypzb.ExecSQL;
-
 end;
 
-procedure Tfmcash.ejun1DblClick(Sender: TObject);
-begin
-  //
-  qrypzb.Edit;
-  //qrypzb.FieldByName('现金流量').AsString :=
-//    tb2.fieldbyname('现金流量简称').AsString;
-  qrypzb.Post;
-  qrypzb.Refresh;
-end;
-
-procedure Tfmcash.ejunpzallCellGetColor(Sender: TObject; ACoord: TPoint;
-  var AColor: TColor);
+procedure Tfmcash.ejunpzallCellGetColor(Sender: TObject; ACoord: TPoint; var
+  AColor: TColor);
 begin
 
-  if ejunpzall.Cells[14, ACoord.Y].AsBoolean then
+  if ejunpzall.Cells[12, ACoord.Y].AsBoolean then
     AColor := cl3DLight
   else
     AColor := clWindow;
@@ -420,30 +365,9 @@ var
   asum, bsum: Double;
 begin
 
-  stext :=
-    '现金流量项目	,金额 ,现金流量简称,	ID	,	标识 ';
-  STRLIST := tstringlist.create();
-  STRLIST.Delimiter := ',';
-  STRLIST.DelimitedText := stext;
-
-  for i := 1 to strlist.Count do
-  begin
-    if I >= ejuncashsheet.DataColumns.Count - 1 then
-      ejuncashsheet.DataColumns.Add;
-    ejuncashsheet.DATAColumns.Items[i - 1].FieldName := strlist[i - 1];
-    ejuncashsheet.DATAColumns.Items[I - 1].Title := STRLIST[I - 1];
-  end;
-
-  ejuncashsheet.Columns[1].Width := 270;
-  ejuncashsheet.Columns[2].Width := 100;
-  ejuncashsheet.Columns[3].Width := 100;
-  ejuncashsheet.Columns[4].Width := 0;
-  ejuncashsheet.Columns[5].Width := 0;
-
-  ejuncashsheet.DataColumns.Items[1].Style.FormatString := '#,##0.00';
-
-  qrytmp.Connection := con1;
   qrytmp.Close;
+  qrytmp.Connection := con1;
+
   qrytmp.SQL.Clear;
   qrytmp.sql.Add('update 现金流量表项目 a');
   qrytmp.sql.Add(' set a.金额=0 '); // where (xmid=''' + fxmid + ''') ');
@@ -456,50 +380,44 @@ begin
 
   qrytmp.Close;
   qrytmp.SQL.Clear;
-  qrytmp.sql.Add('INSERT INTO XYZ(PZH,JE)');
-  qrytmp.sql.Add('select max(现金流量) as PZH,SUM(借方)-SUM(贷方) as JE');
-  qrytmp.sql.Add(' from 凭证表    where  现金否');
+  qrytmp.sql.Add(' INSERT INTO XYZ(PZH,JE)');
+  qrytmp.sql.Add(' select max(现金流量) as PZH,SUM(借方)-SUM(贷方) as JE');
+  qrytmp.sql.Add(' from 凭证表    where xjpz=true');
   qrytmp.sql.Add(' group by 现金流量');
   qrytmp.ExecSQL;
 
   qrytmp.Close;
   qrytmp.SQL.Clear;
-  qrytmp.sql.Add('update 现金流量表项目 a,XYZ B');
-  qrytmp.sql.Add(' set a.金额=b.JE');
+  qrytmp.sql.Add(' update 现金流量表项目 a,XYZ B');
+  qrytmp.sql.Add(' set a.金额=-b.JE');
   qrytmp.sql.Add(' where  TRIM(a.现金流量简称)=TRIM(b.PZH)  and INSTR("ACE",A.标识)>0');
   qrytmp.ExecSQL;
 
   qrytmp.Close;
   qrytmp.SQL.Clear;
   qrytmp.sql.Add('update 现金流量表项目 a,XYZ B');
-  qrytmp.sql.Add(' set a.金额=-b.JE');
+  qrytmp.sql.Add(' set a.金额=b.JE');
   qrytmp.sql.Add(' where  TRIM(a.现金流量简称)=TRIM(b.PZH) and INSTR("BDF",A.标识)>0');
   qrytmp.ExecSQL;
 
-  if tbCASHSHEET.Active = FALSE then
-  begin
-    tbCASHSHEET.open;
-  end
-  else
-  begin
+  xjsum;
 
-    tbCASHSHEET.Close;
-    tbCASHSHEET.open;
+  qrycashsheet.DisableControls;
 
-  end;
-  tbCASHSHEET.DisableControls;
-  tbcashsheet.First;
+  open_ejuncashsheet;
+
+  qrycashsheet.First;
   asum := 0;
   bsum := 0;
   i := 0;
 
-  while not tbCASHSHEET.Eof do
+  while not qrycashsheet.Eof do
   begin
-    if Pos('小计', tbCASHSHEET.fieldbyname('现金流量项目').AsString) > 0 then
+    if Pos('小计', qrycashsheet.fieldbyname('现金流量项目').AsString) > 0 then
     begin
-      tbCASHSHEET.edit;
-      tbCASHSHEET.fieldbyname('金额').asfloat := asum;
-      tbCASHSHEET.post;
+      qrycashsheet.edit;
+      qrycashsheet.fieldbyname('金额').asfloat := asum;
+      qrycashsheet.post;
 
       if i = 0 then
       begin
@@ -508,24 +426,32 @@ begin
         i := i + 1;
       end;
     end
-    else if Pos('现金流量净额', tbCASHSHEET.fieldbyname('现金流量项目').AsString)
-      > 0 then
+    else if Pos('现金流量净额',
+      qrycashsheet.fieldbyname('现金流量项目').AsString) > 0 then
     begin
-      tbCASHSHEET.edit;
-      tbCASHSHEET.fieldbyname('金额').asfloat := bsum - asum;
-      tbCASHSHEET.post;
+      qrycashsheet.edit;
+      qrycashsheet.fieldbyname('金额').asfloat := bsum - asum;
+      qrycashsheet.post;
       //   bsum :=
       asum := 0;
       bsum := 0;
       i := 0;
     end
     else
-      asum := asum + tbCASHSHEET.fieldbyname('金额').asfloat;
+      asum := asum + qrycashsheet.fieldbyname('金额').asfloat;
 
-    tbCASHSHEET.Next;
+    qrycashsheet.Next;
   end;
-  tbcashsheet.First;
-  tbCASHSHEET.EnableControls;
+
+  xjjesum;
+  try
+    qrycashsheet.Close;
+  except
+  end;
+  qrycashsheet.Open;
+
+  qrycashsheet.First;
+  qrycashsheet.EnableControls;
 end;
 
 procedure Tfmcash.btnupdatesheetClick(Sender: TObject);
@@ -535,8 +461,10 @@ end;
 
 procedure Tfmcash.pgc1Change(Sender: TObject);
 begin
-  if pgc1.ActivePageIndex = 1 then
-    OPENCASHSHEET;
+  //  if pgc1.ActivePageIndex = 0 then
+  //    OPENCASHSHEET
+  //  else if pgc1.ActivePageIndex = 1 then
+  //    OPENCASHSHEET;
 end;
 
 procedure Tfmcash.openkmyeb;
@@ -578,7 +506,8 @@ begin
 
   qrykmyeb.Close;
   qrykmyeb.SQL.Clear;
-  qrykmyeb.sql.Add('select * from dg7  order by 代码,一级科目代码,代码');
+  qrykmyeb.sql.Add('select * from dg7   where len(TRIM(代码))=:lena order by 代码,一级科目代码');
+  qrykmyeb.Parameters.ParamByName('lena').Value := firstlevel_length;
   qrykmyeb.open;
   ejunkmyeb.DataSet := qrykmyeb;
   ejunkmyeb.Active := true;
@@ -589,15 +518,15 @@ begin
 
   qrypzb.Close;
   qrypzb.SQL.Clear;
-  qrypzb.sql.Add('select * from 凭证表  where 现金否 and 现金流量<>''ok''   and 全凭证号 in ');
-  qrypzb.sql.Add('(select 全凭证号 from 凭证表  where  科目编码 like :dm )');
+  qrypzb.sql.Add('select * from 凭证表  where  现金流量<>''ok''  ');
+  qrypzb.sql.Add(' and xjpz=true and trim(科目编码) like :dm');
   qrypzb.Parameters.ParamByName('dm').value :=
-    qrykmyeb.fieldbyname('代码').asstring + '%';
+    Trim(qrykmyeb.fieldbyname('代码').asstring) + '%';
   qrypzb.open;
   qrypzb.First;
 
   pgc1.ActivePageIndex := 0;
-  ejunpzall.active := true;
+  ejunpzall.Activate(true);
 
 end;
 
@@ -614,19 +543,6 @@ begin
   aform := tfmopendw.Create(nil);
   aform.con1 := con1;
   aform.ShowModal;
-
-  // LoadParamFromFile();
-
-end;
-
-procedure Tfmcash.ListBox1DblClick(Sender: TObject);
-begin
-  qrypzb.Edit;
-
-  //  qrypzb.FieldByName('现金流量').AsString := listbox1.Items[listbox1.ItemIndex];
-  qrypzb.Post;
-  qrypzb.Refresh;
-
 end;
 
 procedure Tfmcash.UPDATRARR;
@@ -671,7 +587,6 @@ end;
 procedure Tfmcash.calcfit;
 var
   i: integer;
-
 begin
   //
   I := 1;
@@ -712,8 +627,7 @@ begin
       if pz[j].km = 'over' then
         break;
 
-      if (round((pz[j].df - je) * 100) = 0) and (pz[j].fitnum =
-        '') then
+      if (round((pz[j].df - je) * 100) = 0) and (pz[j].fitnum = '') then
       begin
         pz[j].fitnum := 'ok' + inttostr(sxh);
         pz[sxh].fitnum := 'ok' + inttostr(sxh);
@@ -824,8 +738,7 @@ begin
       if pz[j].km = 'over' then
         break;
 
-      if (round(pz[j].jf * 100) = round(je * 100)) and (pz[j].fitnum =
-        '') then
+      if (round(pz[j].jf * 100) = round(je * 100)) and (pz[j].fitnum = '') then
       begin
         pz[j].fitnum := 'ok' + inttostr(sxh);
         pz[sxh].fitnum := 'ok' + inttostr(sxh);
@@ -955,6 +868,7 @@ begin
           if (pz[dd].iscash) and (pz[dd].FITNUM = '') and (pz[dd].jf <> 0) then
             pz[dd].fitnum := 'OK借方';
         end;
+        break;
       end;
     end;
   ////==========   贷方合计找借方
@@ -985,6 +899,7 @@ begin
           if (pz[dd].iscash) and (pz[dd].FITNUM = '') and (pz[dd].df <> 0) then
             pz[dd].fitnum := '贷方OK';
         end;
+        break;
       end;
     end;
 
@@ -1017,6 +932,7 @@ begin
             then
             pz[dd].fitnum := 'OK其他合计借方';
         end;
+        break;
       end;
     end;
   ////==========   贷方合计找借方
@@ -1049,6 +965,7 @@ begin
             then
             pz[dd].fitnum := '其他合计贷方OK';
         end;
+        break;
       end;
     end;
   //仍有现金则将其他科目全部视为现金流量
@@ -1076,32 +993,63 @@ end;
 
 procedure Tfmcash.Button1Click(Sender: TObject);
 var
-  newpzh: string;
-  FILENAMEXLS, oldpzh: string;
-  oldrec: longint;
-
-  i, x, rec: integer;
-  bk, bk1: tbookmark;
-  STRLIST: tstringlist;
   stext: string;
   aform: tfmkmtocash;
+  lena: integer;
 begin
-
   mark_XJPZ;
+  //  qrytmp.Close;
+  //  qrytmp.SQL.Clear;
+  //  qrytmp.SQL.Add(' delete from  凭证表  where trim(全凭证号)<>"2016_ 1_记121"');
+  //  qrytmp.ExecSQL;
+
+  //  qrytmp.Close;
+  //  qrytmp.SQL.Clear;
+  //  qrytmp.SQL.Add(' delete from  凭证表 ');
+  //  qrytmp.ExecSQL;
+  //
+  //  qrytmp.Close;
+  //  qrytmp.SQL.Clear;
+  //  qrytmp.SQL.Add(' insert into 凭证表 select *  from  凭证表1');
+  //  qrytmp.ExecSQL;
 
   cashpzb_display_to_ejungird;
-
   cash_complete_ok_;
-
   cashfx_tableLOOP;
-
   cashfx_other_ok;
+  cashpzb_add_blankline;
 
-  aform := tfmkmtocash.FormCreate(self, null, con1);
-  aform.ShowModal;
-  exit;
+  lena := firstlevel_length;
+  qrytmp.SQL.Clear;
+  qrytmp.SQL.Add(' update dg7 set 一级科目代码=left(代码,:lena) ');
+  qrytmp.Parameters.ParamByName('lena').Value := lena;
+  qrytmp.ExecSQL;
 
-  cashfx_export_toexcel;
+  try
+    qrytmp.SQL.Clear;
+    qrytmp.SQL.Add(' DROP view  dg7A  ');
+    qrytmp.ExecSQL;
+  except
+  end;
+
+  qrytmp.SQL.Clear;
+  qrytmp.SQL.Add(' create view  dg7A  AS select 代码,科目名称 from dg7  ' +
+    ' where len(trim(代码))=' + inttostr(lena));
+  qrytmp.ExecSQL;
+
+  qrytmp.SQL.Clear;
+  qrytmp.SQL.Add(' update dg7 A , dg7A B  set a.一级科目名称=B.科目名称 where a.一级科目代码=B.代码 ');
+  qrytmp.ExecSQL;
+
+  qrytmp.SQL.Clear;
+  qrytmp.SQL.Add(' update 凭证表 A,现金流量表对应 B  set A.现金流量=B.现金流量简称 ');
+  qrytmp.SQL.Add(' where  A.一级名称=B.对方科目');
+  qrytmp.ExecSQL;
+
+  STEXT := 'select * from 凭证表  where  xjpz=true  ' +
+    'order by 全凭证号,fitnum';
+  ejunpzb_refresh(stext);
+  ShowMessage('记账凭证初始化完毕，可以进行后续现金流量分析！');
 
 end;
 
@@ -1112,21 +1060,19 @@ begin
   qrytmp.SQL.Clear;
   qrytmp.SQL.Add(' update 凭证表 a,现金流量表对应    b');
   qrytmp.SQL.Add(' set a.现金流量=b.现金流量简称 ,a.经营其他=trim(b.其他) ');
-  qrytmp.SQL.Add('where trim(a.一级名称)=trim(b.对方科目)  and (TRIM(b.摘要关键字)="" OR (b.摘要关键字 IS NULL) )');
+  qrytmp.SQL.Add('where trim(a.一级名称)=trim(b.对方科目)  and (TRIM(b.二级科目)="" OR (b.二级科目 IS NULL) )');
   qrytmp.SQL.Add('  and (a.fitnum<>"") ');
   qrytmp.ExecSQL;
 
   qrytmp.Close;
-  //  qrytmp.Connection := con1;
   qrytmp.SQL.Clear;
   qrytmp.SQL.Add(' update 凭证表 a, 现金流量表对应  b');
   qrytmp.SQL.Add(' set a.现金流量=b.现金流量简称,a.经营其他=trim(b.其他 )');
-  qrytmp.SQL.Add(' where trim(a.一级名称)=trim(b.对方科目) and  trim(a.科目名称)=trim(b.摘要关键字) ');
-  qrytmp.SQL.Add('  and (trim(a.fitnum)<>"" )  and (TRIM(b.摘要关键字)<>"") ');
+  qrytmp.SQL.Add(' where trim(a.一级名称)=trim(b.对方科目) and  trim(a.科目名称)=trim(b.二级科目) ');
+  qrytmp.SQL.Add('  and (trim(a.fitnum)<>"" )  and (TRIM(b.二级科目)<>"") ');
   qrytmp.ExecSQL;
 
   qrytmp.Close;
-  //  qrytmp.Connection := con1;
   qrytmp.SQL.Clear;
   qrytmp.SQL.Add(' update 凭证表 a');
   qrytmp.SQL.Add(' set a.现金流量=''XX''');
@@ -1134,7 +1080,6 @@ begin
   qrytmp.ExecSQL;
 
   qrytmp.Close;
-  //  qrytmp.Connection := con1;
   qrytmp.SQL.Clear;
   qrytmp.SQL.Add(' update 凭证表 a');
   qrytmp.SQL.Add(' set a.现金流量=''N/A''');
@@ -1144,109 +1089,29 @@ begin
 end;
 
 procedure Tfmcash.btn4Click(Sender: TObject);
-var
-  STRLIST: tstringlist;
-  stext: string;
-  i: Integer;
-  FILENAMEXLS: string;
 begin
-  //
-  stext :=
-    '全凭证号,科目编码,一级名称, 科目名称,现金流量,经营其他,  借方, 贷方,fitnum ,摘要, id,现金否';
-  STRLIST := tstringlist.create();
-  STRLIST.Delimiter := ',';
-  STRLIST.DelimitedText := stext;
-  ejunpzall.ClearAll;
-  for i := 1 to strlist.Count do
-  begin
-    if I >= ejunpzall.DataColumns.Count - 1 then
-      ejunpzall.DataColumns.Add;
-    ejunpzall.DATAColumns.Items[i - 1].FieldName := strlist[i - 1];
-    ejunpzall.DATAColumns.Items[I - 1].Title := STRLIST[I - 1];
-  end;
 
-  ejunpzall.Columns[1].Width := 120;
-  ejunpzall.Columns[2].Width := 80;
-  ejunpzall.Columns[3].Width := 80;
-  ejunpzall.Columns[4].Width := 140;
-  ejunpzall.Columns[5].Width := 100;
-  ejunpzall.Columns[6].Width := 100;
-  ejunpzall.Columns[7].Width := 100;
-  ejunpzall.Columns[8].Width := 70;
-  ejunpzall.Columns[9].Width := 70;
-  ejunpzall.Columns[10].Width := 70;
-  ejunpzall.Columns[11].Width := 70;
-  ejunpzall.Columns[12].Width := 60;
-
-  ejunpzall.DataColumns.Items[5].Style.FormatString := '#,##0.00';
-  ejunpzall.DataColumns.Items[6].Style.FormatString := '#,##0.00';
-  qrypzb.Close;
-  qrypzb.SQL.Clear;
-  qrypzb.sql.Add('select * from 凭证表  where  (fitnum<>"" ) and xjpz=true ');
-  qrypzb.sql.Add('order by 全凭证号');
-
-  qrypzb.open;
-  qrypzb.First;
-
-  pgc1.ActivePageIndex := 0;
-  ejunpzall.active := true;
-  dlgSave1.InitialDir := mainpath;
-  dlgSave1.Execute;
-  if dlgSave1.FileName <> '' then
-  begin
-    if Pos('.', dlgSave1.FileName) < 1 then
-      FILENAMEXLS := dlgSave1.FileName + '.XLS'
-    else
-      FILENAMEXLS := dlgSave1.FileName;
-
-    ejunpzall.SaveToExcel(FILENAMEXLS, '现金流', true, false);
-    mymessage('导出成功!');
-    Close;
-    ShellExecute(Handle, 'open', PChar(FILENAMEXLS),
-      'C:\Windows', nil, 1);
-  end
-  else
-  begin
-    mymessage('取消保存!');
-  end;
+  ejunpzb_toexcel;
 
 end;
 
-procedure Tfmcash.cashfx_export_toexcel;
-var
-  FILENAMEXLS: string;
+procedure Tfmcash.Button2Click(Sender: TObject);
 begin
-  qrypzb.Close;
-  qrypzb.SQL.Clear;
-  qrypzb.sql.Add('select * from 凭证表  where    ');
-  qrypzb.sql.Add('where xjpz=true  order by 全凭证号');
+  OPENCASHSHEET;
+  PGC1.ActivePageIndex := 1;
+end;
 
-  qrypzb.open;
-  qrypzb.First;
+procedure Tfmcash.Button3Click(Sender: TObject);
+var
+  stext: string;
+  aform: tfmkmtocash;
+begin
+  aform := tfmkmtocash.FormCreate(self, null, con1);
+  aform.ShowModal;
 
-  pgc1.ActivePageIndex := 0;
-  ejunpzall.active := true;
-
-  dlgSave1.InitialDir := mainpath;
-  dlgSave1.Execute;
-  if dlgSave1.FileName <> '' then
-  begin
-    if Pos('.', dlgSave1.FileName) < 1 then
-      FILENAMEXLS := dlgSave1.FileName + '.XLS'
-    else
-      FILENAMEXLS := dlgSave1.FileName;
-
-    ejunpzall.SaveToExcel(FILENAMEXLS, '现金流', true, false);
-
-    mymessage('导出成功!');
-    Close;
-    ShellExecute(Handle, 'open', PChar(FILENAMEXLS),
-      'C:\Windows', nil, 1);
-  end
-  else
-  begin
-    mymessage('取消保存!');
-  end;
+  STEXT := 'select * from 凭证表  where  xjpz=true  ' +
+    'order by 全凭证号,fitnum';
+  ejunpzb_refresh(stext);
 end;
 
 procedure Tfmcash.cashFX_pzb_reset;
@@ -1255,6 +1120,7 @@ begin
   qrytmp.sql.clear;
   qrytmp.sql.add('update 凭证表 set  fitnum='''',判断依据=''''');
   qrytmp.ExecSQL;
+
 end;
 
 procedure Tfmcash.cashfx_tableLOOP;
@@ -1366,7 +1232,8 @@ begin
   create_cashview_table;
   qrytmp.close;
   qrytmp.sql.clear;
-  qrytmp.sql.add('insert into  xjview  select  max(全凭证号) as 凭证号,max(现金否) as 现金,1 as 数量 from 凭证表 where 贷方<>0  group by 全凭证号,现金否 ');
+  qrytmp.sql.add('insert into  xjview  select  max(全凭证号) as 凭证号,max(现金否) as 现金,');
+  qrytmp.sql.add(' 1 as 数量 from 凭证表 where 贷方<>0  group by 全凭证号,现金否 ');
   qrytmp.ExecSQL;
   updatePZB_from_cashview;
 
@@ -1374,8 +1241,10 @@ begin
   create_cashview_table;
   qrytmp.close;
   qrytmp.sql.clear;
-  qrytmp.sql.add('insert into  xjview  select  max(全凭证号) as 凭证号,max(现金否) as 现金,1 as 数量 from 凭证表 where 借方<>0  group by 全凭证号,现金否 ');
+  qrytmp.sql.add('insert into  xjview  select  max(全凭证号) as 凭证号,max(现金否) as 现金,');
+  qrytmp.sql.add('1 as 数量 from 凭证表 where 借方<>0  group by 全凭证号,现金否 ');
   qrytmp.ExecSQL;
+
   updatePZB_from_cashview;
 
   //===全部处理
@@ -1424,8 +1293,7 @@ begin
 
 end;
 
-function Tfmcash.tableexists(con: tadoconnection;
-  tablename: string): boolean;
+function Tfmcash.tableexists(con: tadoconnection; tablename: string): boolean;
 var
   tablelist: TStringList;
   i: integer;
@@ -1449,7 +1317,8 @@ procedure Tfmcash.updatePZB_from_cashview;
 begin
   qrytmp.close;
   qrytmp.sql.clear;
-  qrytmp.sql.add('insert into  xjcount  select 凭证号 from xjview  where (凭证号 not  in (select 凭证号 from xjview where 现金<>true))');
+  qrytmp.sql.add('insert into  xjcount  select 凭证号 from xjview ');
+  qrytmp.sql.add(' where (凭证号 not  in (select 凭证号 from xjview where 现金<>true))');
   qrytmp.ExecSQL;
 
   qrytmp.close;
@@ -1476,8 +1345,13 @@ begin
   qrytmp.close;
   qrytmp.sql.clear;
   qrytmp.sql.add('create view cashother as select  max(全凭证号) as 凭证号,max(一级编码) as 一级代码,');
-  qrytmp.sql.add(' sum(借方) as 借,sum(借方) as 贷 from 凭证表  ');
-  qrytmp.sql.add(' where not 现金否 and trim(fitnum)=''''   group by 全凭证号,一级编码 ');
+  qrytmp.sql.add(' sum(借方) as 借,sum(贷方) as 贷 from 凭证表  ');
+  qrytmp.sql.add(' where not 现金否 and (trim(fitnum)='''' or trim(fitnum)="OK挤平数据" ) group by 全凭证号,一级编码 ');
+  qrytmp.ExecSQL;
+
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('delete from xjcount   ');
   qrytmp.ExecSQL;
 
   qrytmp.close;
@@ -1488,9 +1362,171 @@ begin
   qrytmp.close;
   qrytmp.sql.clear;
   qrytmp.sql.add('update 凭证表 A ,XJCOUNT b set A.fitnum=''N/A'' ');
-  qrytmp.sql.add(' WHERE  A.全凭证号=B.凭证号 and a.一级编码=b.一级代码  and trim(fitnum)=''''  ');
+  qrytmp.sql.add(' WHERE  A.全凭证号=B.凭证号 and a.一级编码=b.一级代码 and (trim(fitnum)='''' or trim(fitnum)="OK挤平数据" ) ');
   qrytmp.ExecSQL;
 
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('update 凭证表  set fitnum=''N/A'' ');
+  qrytmp.sql.add(' WHERE trim(fitnum)=""  and xjpz=true');
+  qrytmp.ExecSQL;
+
+end;
+
+procedure Tfmcash.cashpzb_add_blankline;
+begin
+  // TODO -cMM: Tfmcash.cashpzb_add_blankline default body inserted
+
+  try
+    qrytmp.CLOSE;
+    qrytmp.SQL.Clear;
+    qrytmp.SQL.Add('DELETE  from 凭证表 WHERE len(TRIM(科目编码))=0  ');
+    qrytmp.execsql;
+
+    qrytmp.CLOSE;
+    qrytmp.SQL.Clear;
+    qrytmp.SQL.Add('DELETE  from 凭证表 WHERE (借方 is null) and (贷方 is null) ');
+    qrytmp.execsql;
+
+  except
+  end;
+
+  qrytmp.Close;
+  qrytmp.sql.Clear;
+  qrytmp.SQL.Add('delete from  凭证表 where (科目名称 is null) or (trim(科目名称)="") ');
+  qrytmp.ExecSQL;
+
+  qrytmp.Close;
+  qrytmp.sql.Clear;
+  qrytmp.SQL.Add('insert into 凭证表(全凭证号) ');
+  qrytmp.SQL.Add(' select  max(全凭证号) from 凭证表 ');
+  qrytmp.SQL.Add(' where xjpz=true group by 全凭证号');
+  qrytmp.ExecSQL;
+
+  qrytmp.Close;
+  qrytmp.sql.Clear;
+  qrytmp.SQL.Add('update 凭证表 set xjpz=true ');
+  qrytmp.SQL.Add(' where (科目名称 is null) or (trim(科目名称)="") ');
+  qrytmp.ExecSQL;
+
+end;
+
+procedure Tfmcash.eachcashxm_mx_pzb;
+var
+  stext: string;
+begin
+  try
+    STEXT := 'select * from 凭证表  where   xjpz=true AND trim(现金流量)=''' +
+      qrycashsheet.fieldbyname('现金流量简称').asstring + '''' +
+      'order by 一级名称,科目名称,fitnum';
+    ejunpzb_refresh(stext);
+  except
+  end;
+  // TODO -cMM: Tfmcash.eachcashxm_mx_pzb default body inserted
+end;
+
+procedure Tfmcash.ejuncashsheetCellGetColor(Sender: TObject; ACoord: TPoint;
+  var AColor: TColor);
+begin
+  if Trim(ejuncashsheet.Cells[3, ACoord.Y].ASSTRING) = '' then
+    AColor := cl3DLight
+  else
+    AColor := clWindow;
+
+end;
+
+procedure Tfmcash.ejuncashsheetDblClick(Sender: TObject);
+begin
+  //
+  eachcashxm_mx_pzb;
+  pgc1.ActivePageIndex := 0;
+end;
+
+procedure Tfmcash.ejunpzb_refresh(PZBsqlstr: string);
+var
+  STRLIST: tstringlist;
+  stext: string;
+  i: Integer;
+begin
+  stext :=
+    '全凭证号,科目编码,一级名称, 科目名称,现金流量,经营其他,  借方, 贷方,fitnum ,摘要, id,现金否';
+  STRLIST := tstringlist.create();
+  STRLIST.Delimiter := ',';
+  STRLIST.DelimitedText := stext;
+  ejunpzall.ClearAll;
+  for i := 1 to strlist.Count do
+  begin
+    if I >= ejunpzall.DataColumns.Count - 1 then
+      ejunpzall.DataColumns.Add;
+    ejunpzall.DATAColumns.Items[i - 1].FieldName := strlist[i - 1];
+    ejunpzall.DATAColumns.Items[I - 1].Title := STRLIST[I - 1];
+  end;
+
+  ejunpzall.Columns[1].Width := 100;
+  ejunpzall.Columns[2].Width := 90;
+  ejunpzall.Columns[3].Width := 90;
+  ejunpzall.Columns[4].Width := 90;
+  ejunpzall.Columns[5].Width := 160;
+  ejunpzall.Columns[6].Width := 100;
+  ejunpzall.Columns[7].Width := 90;
+  ejunpzall.Columns[8].Width := 90;
+  ejunpzall.Columns[9].Width := 50;
+  ejunpzall.Columns[10].Width := 180;
+  ejunpzall.Columns[11].Visible := False;
+  ejunpzall.Columns[12].Visible := False;
+  ejunpzall.Columns[13].Visible := False;
+
+  ejunpzall.DataColumns.Items[6].Style.FormatString := '#,##0.00';
+  // ejunpzall.DataColumns.Items[8].Style.FormatString := '#,##0.00';
+  ejunpzall.DataColumns.Items[7].Style.FormatString := '#,##0.00';
+  qrypzb.Close;
+  qrypzb.SQL.Clear;
+  qrypzb.sql.Add(PZBsqlstr);
+  qrypzb.open;
+  qrypzb.First;
+
+  pgc1.ActivePageIndex := 0;
+  ejunpzall.active := true;
+end;
+
+procedure Tfmcash.ejunpzb_toexcel;
+var
+  STEXT, FILENAMEXLS, FILENAMEXLS2: string;
+begin
+  STEXT := 'select * from 凭证表  where  (fitnum<>"" ) and xjpz=true  ' +
+    'order by 全凭证号,fitnum';
+  ejunpzb_refresh(stext);
+  dlgSave1.InitialDir := mainpath;
+  dlgSave1.Execute;
+  if dlgSave1.FileName <> '' then
+  begin
+    if Pos('.', dlgSave1.FileName) < 1 then
+      FILENAMEXLS := dlgSave1.FileName + '.XLS'
+    else
+      FILENAMEXLS := dlgSave1.FileName;
+
+    FILENAMEXLS2 := StringReplace(FILENAMEXLS, '.XLS', '1.XLS', [rfReplaceAll]);
+    ejunpzall.SaveToExcel(FILENAMEXLS, '现金凭证', true, false);
+    OPENCASHSHEET;
+    ejuncashsheet.SaveToExcel(FILENAMEXLS2, '现金流量表', true, false);
+
+    mymessage('导出成功!');
+    Close;
+    ShellExecute(Handle, 'open', PChar(FILENAMEXLS), 'C:\Windows', nil, 1);
+  end
+  else
+  begin
+    mymessage('取消保存!');
+  end;
+end;
+
+procedure Tfmcash.ejunpzoneCellGetColor(Sender: TObject; ACoord: TPoint; var
+  AColor: TColor);
+begin
+  if ejunpzone.Cells[12, ACoord.Y].AsBoolean then
+    AColor := cl3DLight
+  else
+    AColor := clWindow;
 end;
 
 procedure Tfmcash.mark_XJPZ;
@@ -1506,5 +1542,184 @@ begin
   qrytmp.ExecSQL;
 end;
 
+procedure Tfmcash.opencashcalcsheet;
+begin
+  { TODO : 汇总凭证表的现金流量 }
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('create view cashcalctable  as ');
+  qrytmp.sql.add(' select 0  as id,max(现金流量名称) as 现金流量名称 ,max(现金流量简称) as 现金流量简称,sum(金额) as 金额,"" AS 标识  ');
+  qrytmp.sql.add('   FROM 凭证表');
+  qrytmp.sql.add(' group by 现金流量名称 ');
+  qrytmp.sql.add(' union  ');
+  qrytmp.sql.add(' select id,现金流量名称 现金流量简称, 金额, 标识  ');
+  qrytmp.sql.add('   FROM 现金流量表项目');
+  qrytmp.ExecSQL;
+
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('update 现金流量表项目 set 是否原始=true');
+  qrytmp.ExecSQL;
+
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('insert into 现金流量表项目(id,现金流量名称, 现金流量简称, 金额, 标识)');
+  qrytmp.sql.add(' select max( id),max(现金流量名称),max( 现金流量简称), sum(金额),max( 标识)  ');
+  qrytmp.sql.add('   FROM cashcalctable');
+  qrytmp.sql.add(' group by 现金流量名称 ');
+  qrytmp.sql.add(' order  by id ');
+  qrytmp.ExecSQL;
+
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('delete from  现金流量表项目 where 是否原始=true');
+  qrytmp.ExecSQL;
+
+end;
+
+procedure Tfmcash.open_ejuncashsheet;
+var
+  STRLIST: tstringlist;
+  stext: string;
+  i: Integer;
+begin
+
+  if qrycashsheet.Active = FALSE then
+  begin
+    qrycashsheet.TableName := '现金流量表项目';
+    qrycashsheet.open;
+  end
+  else
+  begin
+    qrycashsheet.Close;
+    qrycashsheet.TableName := '现金流量表项目';
+    qrycashsheet.open;
+  end;
+
+  stext := '现金流量项目	,金额 ,现金流量简称,	ID	,	标识 ';
+  STRLIST := tstringlist.create();
+  STRLIST.Delimiter := ',';
+  STRLIST.DelimitedText := stext;
+
+  for i := 1 to strlist.Count do
+  begin
+    if I >= ejuncashsheet.DataColumns.Count + 1 then
+      ejuncashsheet.DataColumns.Add;
+    ejuncashsheet.DATAColumns.Items[i - 1].FieldName := strlist[i - 1];
+    ejuncashsheet.DATAColumns.Items[I - 1].Title := STRLIST[I - 1];
+  end;
+
+  ejuncashsheet.Columns[1].Width := 370;
+  ejuncashsheet.Columns[2].Width := 180;
+  ejuncashsheet.Columns[3].Visible := FALSE;
+  ejuncashsheet.Columns[4].Visible := FALSE;
+  ejuncashsheet.Columns[5].Visible := FALSE;
+
+  ejuncashsheet.DataColumns.Items[1].Style.FormatString := '#,##0.00';
+  ejuncashsheet.Activate(true);
+end;
+
+procedure Tfmcash.xjsum;
+var
+  QCQM: double;
+begin
+  //
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('select sum(期初) as QC FROM DG7 WHERE IS现金');
+  qrytmp.open;
+
+  if QRYTMP.RECORDCOUNT > 0 then
+  begin
+    QCQM := QRYTMP.FIELDBYNAME('QC').ASFLOAT;
+
+    qrytmp.close;
+    qrytmp.sql.clear;
+    qrytmp.sql.add('UPDATE 现金流量表项目 set 金额=:JE WHERE trim(现金流量项目)="加:期初现金及现金等价物余额"');
+    qrytmp.Parameters.ParamByName('JE').value := QCQM;
+    qrytmp.ExecSQL;
+  end;
+
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('select sum(期末) as QC FROM DG7 WHERE IS现金');
+  qrytmp.open;
+
+  if QRYTMP.RECORDCOUNT > 0 then
+  begin
+    QCQM := QRYTMP.FIELDBYNAME('QC').ASFLOAT;
+    qrytmp.close;
+    qrytmp.sql.clear;
+    qrytmp.sql.add('UPDATE 现金流量表项目 set 金额=:JE WHERE trim(现金流量项目)="六、期末现金及现金等价物余额"');
+    qrytmp.Parameters.ParamByName('JE').value := QCQM;
+    qrytmp.ExecSQL;
+  end;
+end;
+
+procedure Tfmcash.xjjesum;
+var
+  a1, a2, a3, QCQM: double;
+
+begin
+  // TODO -cMM: Tfmcash.xjjesum default body inserted
+
+  a1 := 0;
+  a2 := 0;
+  a3 := 0;
+  qcqm := 0;
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('select sum(金额) as QC FROM 现金流量表项目 WHERE INSTR(现金流量项目,"净额")>0');
+  qrytmp.open;
+
+  if QRYTMP.RECORDCOUNT > 0 then
+  begin
+    QCQM := QRYTMP.FIELDBYNAME('QC').ASFLOAT;
+    qrytmp.close;
+    qrytmp.sql.clear;
+    qrytmp.sql.add('UPDATE 现金流量表项目 set 金额=:JE WHERE trim(现金流量项目)="五、现金及现金等价物净增加额"');
+    qrytmp.Parameters.ParamByName('JE').value := QCQM;
+    qrytmp.ExecSQL;
+  end;
+
+  a1 := qcqm;
+
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('select sum(金额) as QC FROM 现金流量表项目 WHERE trim(现金流量项目)="加:期初现金及现金等价物余额"');
+  qrytmp.open;
+
+  if QRYTMP.RECORDCOUNT > 0 then
+    a2 := QRYTMP.FIELDBYNAME('QC').ASFLOAT;
+
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('select sum(金额) as QC FROM 现金流量表项目 WHERE trim(现金流量项目)="六、期末现金及现金等价物余额"');
+  qrytmp.open;
+
+  if QRYTMP.RECORDCOUNT > 0 then
+    a3 := QRYTMP.FIELDBYNAME('QC').ASFLOAT;
+
+  qrytmp.close;
+  qrytmp.sql.clear;
+  qrytmp.sql.add('UPDATE 现金流量表项目 set 金额=:JE WHERE INSTR(现金流量项目,"====")>0');
+  qrytmp.Parameters.ParamByName('JE').value := a1 + a2 - a3;
+  qrytmp.ExecSQL;
+
+end;
+
+function Tfmcash.firstlevel_length: integer;
+begin
+  result := 4;
+
+  try
+    qrytmp.CLOSE;
+    qrytmp.SQL.Clear;
+    qrytmp.SQL.Add('select min(len(TRIM(科目编码))) as 一级科目长度 from 凭证表 where trim(科目编码)<>""');
+    qrytmp.open;
+    result := qrytmp.fieldbyname('一级科目长度').ASINTEGER;
+  except
+  end;
+end;
 end.
 

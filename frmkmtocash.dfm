@@ -1,8 +1,8 @@
 object fmkmtocash: Tfmkmtocash
-  Left = 181
-  Top = 121
+  Left = 225
+  Top = 162
   Width = 1038
-  Height = 625
+  Height = 624
   Caption = 'fmkmtocash'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,23 +15,24 @@ object fmkmtocash: Tfmkmtocash
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
-    Left = 674
+    Left = 762
     Top = 68
     Width = 20
-    Height = 519
+    Height = 518
+    Align = alRight
   end
   object ejunkmlist: TEjunDBGrid
     Left = 0
     Top = 68
-    Width = 674
-    Height = 519
+    Width = 762
+    Height = 518
     OptionsEx = [goxStringGrid, goxSupportFormula, goxAutoCalculate]
     DefaultColWidth = 73
     Selection.AlphaBlend = False
     Selection.TransparentColor = False
     Selection.DisableDrag = False
     Selection.HideBorder = False
-    Align = alLeft
+    Align = alClient
     FooterRowCount = 0
     DataSet = tbkmlist
     DataColumns = <
@@ -73,17 +74,18 @@ object fmkmtocash: Tfmkmtocash
       0000000A00000000000000}
   end
   object ejuncashlist: TEjunDBGrid
-    Left = 694
+    Left = 782
     Top = 68
-    Width = 328
-    Height = 519
+    Width = 240
+    Height = 518
     OptionsEx = [goxStringGrid, goxSupportFormula, goxAutoCalculate]
+    ColCount = 1
     DefaultColWidth = 73
     Selection.AlphaBlend = False
     Selection.TransparentColor = False
     Selection.DisableDrag = False
     Selection.HideBorder = False
-    Align = alClient
+    Align = alRight
     FooterRowCount = 0
     DataColumns = <>
     TabOrder = 1
@@ -98,13 +100,13 @@ object fmkmtocash: Tfmkmtocash
       FFFFFF1FFFFFFF1FFFFFFF1FFFFFFF1F00000000000000000000000100000000
       00000000050000FF080000FF00000000850017000000000000000845006A0075
       006E0047007200690064001E040400000000000A000000090810000007100000
-      000000000000000000000000020E000100000004000000010004000000052031
+      000000000000000000000000020E000100000004000000010000000000052031
       0066666666666629406666666666662940666666666666294066666666666629
       4066666666666629406666666666662940000A2031000101000000FFFFFFFF01
       000000FFFFFFFF00000000000000000000000000000000000000000000000000
       0000000000000009202A00090064000100000000000000020008000000000000
       0035403333333333B33D40000000000000000008007D000C0000000000580200
-      000000000008021400000000000500FF000000000080010000FFFF0000E50002
+      000000000008021400000000000100FF000000000080010000FFFF0000E50002
       0000000A00000000000000}
   end
   object Panel1: TPanel
@@ -116,7 +118,7 @@ object fmkmtocash: Tfmkmtocash
     TabOrder = 2
     object Button1: TButton
       Left = 827
-      Top = 17
+      Top = 19
       Width = 81
       Height = 35
       Caption = #30830#35748

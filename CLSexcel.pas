@@ -1134,6 +1134,12 @@ var
 begin
   //
   result := -1;
+
+  qrytmp.Close;
+  qrytmp.SQL.Clear;
+  qrytmp.SQL.Add('delete from dg7 where   len(trim(ДњТы))=0  ');
+  qrytmp.open;
+
   try
     qrytmp.Close;
     qrytmp.SQL.Clear;
