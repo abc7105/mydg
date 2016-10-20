@@ -139,7 +139,7 @@ begin
   qrytmp.SQL.Add(' insert into 现金流量统计(科目代码,一级科目,二级科目,金额 ,对应现金流量名称,其他的明细)');
   qrytmp.SQL.Add(' select max(科目编码) AS  科目代码 ,MAX(一级名称)  AS 一级科目 ,MAX(科目名称) AS 二级科目 ,0,');
   qrytmp.SQL.Add(' MAX(现金流量) as 对应现金流量名称,max(经营其他) AS 其他的明细 ');
-  qrytmp.SQL.Add(' FROM 凭证表 where xjpz  and  trim(科目名称)<>"" and not (科目名称 is null)  and trim(fitnum)<>"N/A" '); //
+  qrytmp.SQL.Add(' FROM 凭证表 where xjpz  and  trim(科目名称)<>"" and not (科目名称 is null)  and trim(fitnum)<>"不适用" '); //
   qrytmp.SQL.Add(' GROUP BY 科目编码,科目名称');
   qrytmp.SQL.Add(' order by 科目编码 ');
   qrytmp.ExecSQL;
@@ -200,7 +200,7 @@ begin
   qrytmp.ExecSQL;
 
   qrytmp.SQL.Clear;
-  qrytmp.SQL.Add('update 凭证表 A,现金流量统计 B  set A.现金流量=B.对应现金流量名称 where A.xjpz=true   AND  Trim(FITNUM)<>"N/A" and A.科目编码=B.科目代码');
+  qrytmp.SQL.Add('update 凭证表 A,现金流量统计 B  set A.现金流量=B.对应现金流量名称 where A.xjpz=true   AND  Trim(FITNUM)<>"不适用" and A.科目编码=B.科目代码');
   qrytmp.ExecSQL;
 end;
 
@@ -250,4 +250,3 @@ begin
 end;
 
 end.
-

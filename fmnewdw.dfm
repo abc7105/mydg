@@ -1,6 +1,6 @@
 object fmadddw: Tfmadddw
-  Left = 790
-  Top = 228
+  Left = 692
+  Top = 331
   Width = 635
   Height = 412
   ActiveControl = sDateEdit1
@@ -104,7 +104,7 @@ object fmadddw: Tfmadddw
       EditMask = '!9999/99/99;1; '
       MaxLength = 10
       TabOrder = 3
-      Text = '    /  /  '
+      Text = '    -  -  '
       BoundLabel.Indent = 0
       BoundLabel.Font.Charset = DEFAULT_CHARSET
       BoundLabel.Font.Color = clWindowText
@@ -145,7 +145,7 @@ object fmadddw: Tfmadddw
       EditMask = '!9999/99/99;1; '
       MaxLength = 10
       TabOrder = 6
-      Text = '    /  /  '
+      Text = '    -  -  '
       BoundLabel.Indent = 0
       BoundLabel.Font.Charset = DEFAULT_CHARSET
       BoundLabel.Font.Color = clWindowText

@@ -1,6 +1,6 @@
 object fmcash: Tfmcash
-  Left = 731
-  Top = 263
+  Left = 251
+  Top = 173
   Width = 1032
   Height = 565
   Caption = 'fmcash'
@@ -54,7 +54,7 @@ object fmcash: Tfmcash
     end
     object Button2: TButton
       Left = 344
-      Top = 7
+      Top = 8
       Width = 125
       Height = 32
       Caption = #29983#25104#29616#37329#27969#37327#34920
@@ -85,7 +85,7 @@ object fmcash: Tfmcash
     Top = 49
     Width = 1016
     Height = 478
-    ActivePage = tsbank
+    ActivePage = tskmyeb
     Align = alClient
     TabOrder = 2
     OnChange = pgc1Change
@@ -118,9 +118,9 @@ object fmcash: Tfmcash
           TabOrder = 0
           object ejunpzall: TEjunDBGrid
             Left = 1
-            Top = 1
+            Top = 38
             Width = 1004
-            Height = 244
+            Height = 207
             OptionsEx = [goxStringGrid, goxSupportFormula, goxAutoCalculate]
             DefaultColWidth = 73
             Selection.AlphaBlend = False
@@ -170,6 +170,32 @@ object fmcash: Tfmcash
               00000008007D000C000000000058020000000000007D000C0001000100470401
               000000000008021400000000000500FF000000000080010000FFFF0000E50002
               0000000A00000000000000}
+          end
+          object Panel1: TPanel
+            Left = 1
+            Top = 1
+            Width = 1004
+            Height = 37
+            Align = alTop
+            TabOrder = 1
+            object Button4: TButton
+              Left = 142
+              Top = 5
+              Width = 112
+              Height = 25
+              Caption = #21482#30475#25380#24179#25968#25454
+              TabOrder = 0
+              OnClick = Button4Click
+            end
+            object Button5: TButton
+              Left = 16
+              Top = 6
+              Width = 110
+              Height = 25
+              Caption = #30475#20840#37096#29616#37329#27969#37327
+              TabOrder = 1
+              OnClick = Button5Click
+            end
           end
         end
         object pnl7: TPanel
@@ -306,7 +332,7 @@ object fmcash: Tfmcash
         Left = 0
         Top = 0
         Width = 1008
-        Height = 451
+        Height = 450
         Options = [goRangeSelect, goRowSelect, goRowSizing, goColSizing, goUnequalRowHeight, goFixedRowShowNo, goFixedColShowNo, goAlwaysShowSelection]
         OptionsEx = [goxStringGrid, goxSupportFormula, goxAutoCalculate]
         DefaultColWidth = 73

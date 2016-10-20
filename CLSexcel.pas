@@ -1138,7 +1138,7 @@ begin
   qrytmp.Close;
   qrytmp.SQL.Clear;
   qrytmp.SQL.Add('delete from dg7 where   len(trim(ДњТы))=0  ');
-  qrytmp.open;
+  qrytmp.execsql;
 
   try
     qrytmp.Close;
